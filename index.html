@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Gestion des Temps</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans">
+
+    <!-- Configuration Screen -->
+    <div id="config-screen" class="min-h-screen flex items-center justify-center">
+        <div class="card w-96">
+            <h2 class="text-xl font-bold mb-4">Connexion Supabase</h2>
+            <p class="text-xs text-gray-500 mb-4">Entrez vos clés (disponibles dans Supabase > Settings > API)</p>
+
+            <label class="block text-sm font-medium text-gray-700">Project URL</label>
+            <input type="text" id="supabaseUrl" value="https://xvqwgndjznvewqgalpaq.supabase.co"
+                placeholder="https://xyz.supabase.co"
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2 mb-4">
+
+            <label class="block text-sm font-medium text-gray-700">Anon Key (Public)</label>
+            <input type="text" id="supabaseKey" placeholder="eyJh..."
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2 mb-4">
+
+            <div class="flex flex-col gap-2">
+                <button onclick="saveConfig()"
+                    class="w-full bg-gray-600 text-white rounded-md p-2 hover:bg-gray-700">Mode Test (Anon)</button>
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-gray-300"></div>
+                    <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">OU</span>
+                    <div class="flex-grow border-t border-gray-300"></div>
+                </div>
+                <!-- Bouton Microsoft SSO -->
+                <button onclick="loginWithMicrosoft()"
+                    class="w-full bg-blue-600 text-white rounded-md p-2 hover:bg-blue-700 flex justify-center items-center gap-2">
+                    <svg width="20" height="20" viewBox="0 0 23 23">
+                        <path fill="#f35325" d="M1 1h10v10H1z" />
+                        <path fill="#81bc06" d="M12 1h10v10H12z" />
+                        <path fill="#05a6f0" d="M1 12h10v10H1z" />
+                        <path fill="#ffba08" d="M12 12h10v10H12z" />
+                    </svg>
+                    Connexion Microsoft 365
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="hidden container mx-auto p-6">
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold text-gray-800">Suivi des Temps - Manager</h1>
+            <button onclick="clearConfig()" class="text-sm text-red-500 hover:underline">Déconnexion</button>
+        </header>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card border-l-4 border-blue-500">
+                <h3 class="text-gray-500 text-sm">Feuilles Reçues</h3>
+                <p class="text-3xl font-bold" id="kpi-count">-</p>
+            </div>
+            <div class="card border-l-4 border-green-500">
+                <h3 class="text-gray-500 text-sm">Complétude Moyenne</h3>
+                <p class="text-3xl font-bold" id="kpi-rate">- %</p>
+            </div>
+            <div class="card border-l-4 border-red-500">
+                <h3 class="text-gray-500 text-sm">Anomalies Détectées</h3>
+                <p class="text-3xl font-bold text-red-600" id="kpi-anomalies">-</p>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Anomalies List -->
+            <div class="card">
+                <h2 class="text-xl font-bold mb-4">⚠️ Anomalies à traiter</h2>
+                <div class="overflow-y-auto h-64">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Employé</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Problème
+                                </th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Gravité</th>
+                            </tr>
+                        </thead>
+                        <tbody id="anomalies-table" class="divide-y divide-gray-200">
+                            <!-- Rows inserted by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Timesheet Chart -->
+            <div class="card">
+                <h2 class="text-xl font-bold mb-4">📊 Heures / Semaine</h2>
+                <canvas id="hoursChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let sbClient;
+
+        async function init() {
+            const url = localStorage.getItem('sb_url');
+            const key = localStorage.getItem('sb_key');
+
+            if (url && key) {
+                // Init client
+                sbClient = window.supabase.createClient(url, key);
+
+                // Check active session (SSO)
+                const { data: { session } } = await sbClient.auth.getSession();
+
+                if (session) {
+                    // User connected via Microsoft
+                    console.log("Utilisateur connecté :", session.user.email);
+                    showDashboard();
+                } else {
+                    // Not connected, but keys are present. Stay on config screen or auto-show dashboard if using Anon mode only.
+                    // For hybrid approach:
+                    document.getElementById('supabaseUrl').value = url;
+                    document.getElementById('supabaseKey').value = key;
+                }
+            }
+        }
+
+        async function loginWithMicrosoft() {
+            const url = document.getElementById('supabaseUrl').value;
+            const key = document.getElementById('supabaseKey').value;
+
+            if (!url || !key) {
+                alert("Veuillez d'abord entrer l'URL et la Clé Publique Supabase");
+                return;
+            }
+
+            // Save keys for callback
+            localStorage.setItem('sb_url', url);
+            localStorage.setItem('sb_key', key);
+
+            sbClient = window.supabase.createClient(url, key);
+
+            const { data, error } = await sbClient.auth.signInWithOAuth({
+                provider: 'azure',
+                options: {
+                    scopes: 'email',
+                    redirectTo: window.location.href
+                }
+            });
+
+            if (error) alert("Erreur redirection : " + error.message);
+        }
+
+        function saveConfig() {
+            const url = document.getElementById('supabaseUrl').value;
+            const key = document.getElementById('supabaseKey').value;
+            if (url && key) {
+                localStorage.setItem('sb_url', url);
+                localStorage.setItem('sb_key', key);
+                // Init client immediately for Anon mode
+                sbClient = window.supabase.createClient(url, key);
+                showDashboard();
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('config-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            loadData();
+        }
+
+        function clearConfig() {
+            localStorage.clear();
+            location.reload();
+        }
+
+        // Data Loading
+        async function loadData() {
+            // 1. Fetch Timesheet Stats
+            const { data: stats, error: errStats } = await sbClient
+                .from('timesheet_stats')
+                .select('*')
+                .order('period_start', { ascending: false });
+
+            // 2. Fetch Anomalies
+            const { data: anomalies, error: errAnomalies } = await sbClient
+                .from('anomalies')
+                .select('*')
+                .eq('resolved', false);
+
+            if (errStats || errAnomalies) {
+                console.error("Erreur Supabase:", errStats, errAnomalies);
+                alert("Erreur de récupération (Vérifiez la console ou les droits RLS)");
+                return;
+            }
+
+            updateKPIs(stats, anomalies);
+            renderAnomalies(anomalies);
+            renderChart(stats);
+        }
+
+        function updateKPIs(stats, anomalies) {
+            document.getElementById('kpi-count').innerText = stats.length;
+
+            const avgRate = stats.reduce((acc, curr) => acc + (curr.completion_rate || 0), 0) / (stats.length || 1);
+            document.getElementById('kpi-rate').innerText = Math.round(avgRate) + ' %';
+
+            document.getElementById('kpi-anomalies').innerText = anomalies.length;
+        }
+
+        function renderAnomalies(list) {
+            const tbody = document.getElementById('anomalies-table');
+            tbody.innerHTML = '';
+
+            list.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${item.employee_email}</td>
+                    <td class="px-4 py-2 text-sm text-gray-500">${item.description}</td>
+                    <td class="px-4 py-2 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            ${item.severity === 'high' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${item.severity}
+                        </span>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderChart(stats) {
+            const ctx = document.getElementById('hoursChart').getContext('2d');
+
+            // Group by email just for demo (or period)
+            const labels = stats.map(s => s.employee_email.split('@')[0]); // Short name
+            const dataHours = stats.map(s => s.total_hours);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Heures Travaillées',
+                        data: dataHours,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, suggestedMax: 40 }
+                    }
+                }
+            });
+        }
+
+        // Auto-init
+        init();
+    </script>
+</body>
+
+</html>
