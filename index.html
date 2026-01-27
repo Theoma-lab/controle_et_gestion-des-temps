@@ -134,83 +134,103 @@
 
         // Data Loading
         async function loadData() {
-            // 1. Fetch Timesheet Stats
-            const { data: stats, error: errStats } = await sbClient
-                .from('timesheet_stats')
-                .select('*')
-                .order('period_start', { ascending: false });
+            // 1. Fetch RAW Timesheets
+            const { data: timesheets, error } = await sbClient
+                .from('timesheets')
+                .select('employee_email, duration, client, billable')
+                .limit(5000); // Limit for performance dev, remove later
 
-            // 2. Fetch Anomalies
-            const { data: anomalies, error: errAnomalies } = await sbClient
-                .from('anomalies')
-                .select('*')
-                .eq('resolved', false);
-
-            if (errStats || errAnomalies) {
-                console.error("Erreur Supabase:", errStats, errAnomalies);
-                alert("Erreur de récupération (Vérifiez la console ou les droits RLS)");
+            if (error) {
+                console.error("Erreur Supabase:", error);
+                alert("Erreur de récupération : " + error.message);
                 return;
             }
 
-            updateKPIs(stats, anomalies);
-            renderAnomalies(anomalies);
+            console.log("Données chargées :", timesheets.length, "lignes");
+
+            // Aggregation
+            const stats = processStats(timesheets);
+
+            updateKPIs(stats, timesheets);
             renderChart(stats);
+            // renderAnomalies skipped for now
         }
 
-        function updateKPIs(stats, anomalies) {
-            document.getElementById('kpi-count').innerText = stats.length;
+        function processStats(rows) {
+            const map = {}; // email -> total_hours
 
-            const avgRate = stats.reduce((acc, curr) => acc + (curr.completion_rate || 0), 0) / (stats.length || 1);
-            document.getElementById('kpi-rate').innerText = Math.round(avgRate) + ' %';
-
-            document.getElementById('kpi-anomalies').innerText = anomalies.length;
-        }
-
-        function renderAnomalies(list) {
-            const tbody = document.getElementById('anomalies-table');
-            tbody.innerHTML = '';
-
-            list.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">${item.employee_email}</td>
-                    <td class="px-4 py-2 text-sm text-gray-500">${item.description}</td>
-                    <td class="px-4 py-2 whitespace-nowrap">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${item.severity === 'high' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">
-                            ${item.severity}
-                        </span>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+            rows.forEach(r => {
+                const email = r.employee_email;
+                if (!map[email]) map[email] = 0;
+                // Duration is likely in minutes ? Let's check sample. 
+                // In import script: duration = row['Durée'] || 0. 
+                // Assuming minutes based on typical exports.
+                map[email] += (r.duration || 0) / 60;
             });
+
+            // Convert to array
+            return Object.keys(map).map(email => ({
+                employee_email: email,
+                total_hours: map[email]
+            })).sort((a, b) => b.total_hours - a.total_hours);
+        }
+
+        function updateKPIs(stats, rawRows) {
+            // KPI 1: Total Hours
+            const totalHours = stats.reduce((acc, s) => acc + s.total_hours, 0);
+            document.getElementById('kpi-count').parentElement.querySelector('h3').innerText = "Total Heures";
+            document.getElementById('kpi-count').innerText = Math.round(totalHours);
+
+            // KPI 2: Billable Ratio (Example)
+            const billableRows = rawRows.filter(r => r.billable);
+            const rate = (billableRows.length / rawRows.length) * 100;
+            document.getElementById('kpi-rate').parentElement.querySelector('h3').innerText = "% Facturable (lignes)";
+            document.getElementById('kpi-rate').innerText = isNaN(rate) ? '-' : Math.round(rate) + ' %';
+
+            // KPI 3: Count Employees
+            document.getElementById('kpi-anomalies').parentElement.querySelector('h3').innerText = "Collaborateurs";
+            document.getElementById('kpi-anomalies').innerText = stats.length;
+            document.getElementById('kpi-anomalies').classList.remove('text-red-600');
+            document.getElementById('kpi-anomalies').classList.add('text-blue-600');
         }
 
         function renderChart(stats) {
             const ctx = document.getElementById('hoursChart').getContext('2d');
 
-            // Group by email just for demo (or period)
-            const labels = stats.map(s => s.employee_email.split('@')[0]); // Short name
-            const dataHours = stats.map(s => s.total_hours);
+            // Top 10 only to avoid overcrowding
+            const topStats = stats.slice(0, 10);
 
-            new Chart(ctx, {
+            const labels = topStats.map(s => s.employee_email.split('@')[0]);
+            const dataHours = topStats.map(s => s.total_hours);
+
+            if (window.myChart) window.myChart.destroy();
+
+            window.myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Heures Travaillées',
                         data: dataHours,
-                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
                         borderColor: 'rgb(59, 130, 246)',
                         borderWidth: 1
                     }]
                 },
                 options: {
+                    responsive: true,
                     scales: {
-                        y: { beginAtZero: true, suggestedMax: 40 }
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Top 10 Collaborateurs (Heures)' }
                     }
                 }
             });
+        }
+
+        function renderAnomalies(list) {
+            document.getElementById('anomalies-table').innerHTML = '<tr><td colspan="3" class="px-4 py-2 text-center text-gray-500">Pas d\'anomalies pour l\'instant</td></tr>';
         }
 
         // Auto-init
