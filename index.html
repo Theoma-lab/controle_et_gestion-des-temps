@@ -114,115 +114,160 @@
     </style>
 </head>
 
-<body class="text-gray-800 h-screen flex flex-col overflow-hidden">
+<body class="text-gray-800 h-screen flex overflow-hidden bg-gray-50">
 
-    <!-- Top Bar -->
-    <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 flex-shrink-0 z-10">
-        <div class="flex items-center gap-4">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col flex-shrink-0 z-20">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
             <h1 class="text-xl font-bold tracking-tight text-gray-900">TDB <span class="text-yellow-500">Gestion
                     Temps</span></h1>
-            <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">v1.0</span>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <nav class="flex-1 px-4 py-4 space-y-2">
+            <a href="#" onclick="switchView('data')" id="nav-data"
+                class="flex items-center gap-3 px-3 py-2 rounded-md transition-colors bg-yellow-50 text-gray-900 font-medium">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z">
                     </path>
                 </svg>
-            </button>
-            <button class="btn-yellow px-4 py-2 rounded shadow-sm text-sm flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                Données de base
+            </a>
+            <a href="#" onclick="switchView('dashboard')" id="nav-dashboard"
+                class="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-gray-600 hover:bg-gray-50 hover:text-gray-900">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                Exporter CSV
-            </button>
-            <button class="btn-purple px-4 py-2 rounded shadow-sm text-sm flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M4 16v1a3 0 003 3h10a3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                        d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
                 </svg>
-                Importer CSV
-            </button>
-            <button class="bg-red-50 text-red-500 p-2 rounded hover:bg-red-100 ml-2"
+                Tableau de Bord
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <button class="w-full flex items-center gap-2 text-sm text-red-500 hover:text-red-700"
                 onclick="sbClient.auth.signOut().then(()=>location.reload())">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 0 01-3 3H6a3 0 01-3-3V7a3 0 013-3h4a3 0 013 3v1"></path>
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                    </path>
                 </svg>
+                Déconnexion
             </button>
         </div>
-    </header>
+    </aside>
 
-    <!-- Sub Header -->
-    <div class="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between flex-shrink-0">
-        <div class="flex items-center gap-4">
-            <h2 class="text-lg font-bold">Suivi des Temps</h2>
-            <div class="bg-green-50 text-green-700 px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Sauvegardé
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <!-- View: DATA GRID -->
+        <div id="view-data" class="flex-1 flex flex-col h-full">
+            <!-- Header for Data -->
+            <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 flex-shrink-0">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-lg font-bold">Suivi des Temps</h2>
+                    <div
+                        class="bg-green-50 text-green-700 px-3 py-1 rounded text-xs font-medium flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                            </path>
+                        </svg>
+                        Synchro
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="btn-yellow px-4 py-2 rounded shadow-sm text-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Exporter
+                    </button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-auto bg-white m-4 rounded-lg border border-gray-200 shadow-sm relative">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm">
+                        <tr>
+                            <th scope="col" style="min-width: 150px;">Client</th>
+                            <th scope="col" style="min-width: 180px;">Collab</th>
+                            <th scope="col" style="min-width: 100px;">Date</th>
+                            <th scope="col" style="min-width: 200px;">Activité</th>
+                            <th scope="col" style="min-width: 300px;">Commentaire</th>
+                            <th scope="col" style="min-width: 100px;">Durée (h)</th>
+                            <th scope="col" style="min-width: 120px;">Facturable</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timesheet-body" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="7" class="text-center py-10 text-gray-400">Chargement...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-        <div class="flex items-center gap-2 text-sm text-gray-500">
-            <span id="record-count" class="font-medium text-gray-900">0</span> Dossiers
-        </div>
-    </div>
 
-    <!-- Main Table Area -->
-    <div class="flex-1 overflow-auto bg-white m-4 rounded-lg border border-gray-200 shadow-sm relative">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm">
-                <tr>
-                    <th scope="col" style="min-width: 150px;">
-                        Client
-                        <input type="text" placeholder="Filtrer..." class="table-header-input">
-                    </th>
-                    <th scope="col" style="min-width: 180px;">
-                        Collab
-                        <input type="text" placeholder="Collab..." class="table-header-input">
-                    </th>
-                    <th scope="col" style="min-width: 100px;">
-                        Date
-                        <input type="text" placeholder="Dates..." class="table-header-input">
-                    </th>
-                    <th scope="col" style="min-width: 200px;">
-                        Activité
-                        <input type="text" placeholder="Filtrer..." class="table-header-input">
-                    </th>
-                    <th scope="col" style="min-width: 300px;">
-                        Commentaire
-                        <input type="text" placeholder="Recherche..." class="table-header-input">
-                    </th>
-                    <th scope="col" style="min-width: 100px;">
-                        Durée (h)
-                        <input type="text" placeholder="> 0" class="table-header-input">
-                    </th>
-                    <th scope="col" style="min-width: 120px;">
-                        Facturable
-                        <select class="table-header-input">
-                            <option value="">Tous</option>
-                            <option value="true">Oui</option>
-                            <option value="false">Non</option>
-                        </select>
-                    </th>
-                    <th scope="col" style="min-width: 150px;">
-                        Statut
-                        <input type="text" placeholder="Statut..." class="table-header-input">
-                    </th>
-                </tr>
-            </thead>
-            <tbody id="timesheet-body" class="bg-white divide-y divide-gray-200">
-                <!-- Rows will be injected here -->
-                <tr>
-                    <td colspan="8" class="text-center py-10 text-gray-400">Chargement des données...</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+        <!-- View: DASHBOARD -->
+        <div id="view-dashboard" class="flex-1 flex flex-col h-full hidden p-6 overflow-y-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- KPI Cards -->
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Heures</p>
+                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-hours">-</h3>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-full text-blue-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Taux Facturable</p>
+                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-billable">- %</h3>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded-full text-green-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Collaborateurs</p>
+                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-collabs">-</h3>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded-full text-purple-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Chart Container -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Collaborateurs (Heures)</h3>
+                    <canvas id="topCollabChart"></canvas>
+                </div>
+                <!-- Additional container placeholder -->
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Répartition par Activité (Top 5)</h3>
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </main>
 
     <script>
         const SB_URL = "https://xvqwgndjznvewqgalpaq.supabase.co";
@@ -230,10 +275,39 @@
 
         const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
 
+        // Global data cache
+        let allTimesheets = [];
+
+        function switchView(viewName) {
+            // Update Tab Styles
+            const navData = document.getElementById('nav-data');
+            const navDash = document.getElementById('nav-dashboard');
+
+            if (viewName === 'data') {
+                navData.classList.add('bg-yellow-50', 'text-gray-900');
+                navData.classList.remove('text-gray-600', 'hover:bg-gray-50');
+                navDash.classList.remove('bg-yellow-50', 'text-gray-900');
+                navDash.classList.add('text-gray-600', 'hover:bg-gray-50');
+
+                document.getElementById('view-data').classList.remove('hidden');
+                document.getElementById('view-dashboard').classList.add('hidden');
+            } else {
+                navDash.classList.add('bg-yellow-50', 'text-gray-900');
+                navDash.classList.remove('text-gray-600', 'hover:bg-gray-50');
+                navData.classList.remove('bg-yellow-50', 'text-gray-900');
+                navData.classList.add('text-gray-600', 'hover:bg-gray-50');
+
+                document.getElementById('view-data').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                // Trigger chart render if needed (fix canvas resize issues)
+                if (window.topCollabChart) window.topCollabChart.resize();
+                if (window.activityChart) window.activityChart.resize();
+            }
+        }
+
         function formatName(email) {
             if (!email) return '';
             const part = email.split('@')[0];
-            // Capitalize first letter
             return part.charAt(0).toUpperCase() + part.slice(1);
         }
 
@@ -244,65 +318,117 @@
         }
 
         async function init() {
-            // Fetch latest 100 rows for demo
+            // Fetch latest 5000 rows (enough for dashboard stats)
             const { data, error } = await sbClient
                 .from('timesheets')
                 .select('*')
-                .order('date', { ascending: false })
-                .limit(100);
+                .limit(5000); // 5000 for good measure
 
             if (error) {
                 console.error(error);
-                document.getElementById('timesheet-body').innerHTML = `<tr><td colspan="8" class="text-center text-red-500 py-4">Erreur: ${error.message}</td></tr>`;
                 return;
             }
 
-            renderTable(data);
+            allTimesheets = data;
+
+            // Render Default Data Grid (Top 100 recent)
+            // Sort by date desc locally since we fetched 5000
+            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderTable(sorted.slice(0, 100));
+
+            // Render Dashboard Stats
+            renderDashboard(data);
         }
 
         function renderTable(rows) {
             const tbody = document.getElementById('timesheet-body');
-            document.getElementById('record-count').innerText = rows.length;
             tbody.innerHTML = '';
 
             rows.forEach(row => {
                 const tr = document.createElement('tr');
-
                 const billableBadge = row.billable
                     ? `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Oui</span>`
                     : `<span class="text-gray-400 text-xs">—</span>`;
 
                 tr.innerHTML = `
                     <td class="font-bold text-gray-900">${row.client || '-'}</td>
-                    <td>
-                        <span class="badge-collab">${formatName(row.employee_email)}</span>
-                    </td>
+                    <td><span class="badge-collab">${formatName(row.employee_email)}</span></td>
                     <td class="text-gray-500 text-xs">${formatDate(row.date)}</td>
-                    <td>
-                        <span class="badge-activity">${row.activity || ''}</span>
-                        <div class="text-xs text-gray-400 mt-1">${row.mission_type || ''}</div>
-                    </td>
-                    <td class="text-gray-500 italic truncate max-w-xs" title="${row.comment || ''}">
-                        ${row.comment || '-'}
-                    </td>
-                    <td class="font-mono text-gray-700">
-                        ${(row.duration / 60).toFixed(2)}
-                    </td>
-                    <td class="text-center">
-                        ${billableBadge}
-                    </td>
-                    <td>
-                        <span class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs border border-gray-200">
-                            ${row.billing_status || 'N/A'}
-                        </span>
-                    </td>
+                    <td><span class="badge-activity">${row.activity || ''}</span></td>
+                    <td class="text-gray-500 italic truncate max-w-xs" title="${row.comment || ''}">${row.comment || '-'}</td>
+                    <td class="font-mono text-gray-700">${(row.duration / 60).toFixed(2)}</td>
+                    <td class="text-center">${billableBadge}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
+        function renderDashboard(rows) {
+            // 1. KPIs
+            let totalMins = 0;
+            let billableCount = 0;
+            const collaborators = new Set();
+            const activityCount = {};
+            const collabHours = {};
+
+            rows.forEach(r => {
+                totalMins += (r.duration || 0);
+                if (r.billable) billableCount++;
+                if (r.employee_email) {
+                    collaborators.add(r.employee_email);
+                    if (!collabHours[r.employee_email]) collabHours[r.employee_email] = 0;
+                    collabHours[r.employee_email] += (r.duration || 0);
+                }
+                const act = r.activity || 'Autre';
+                if (!activityCount[act]) activityCount[act] = 0;
+                activityCount[act] += (r.duration || 0);
+            });
+
+            document.getElementById('kpi-hours').innerText = Math.round(totalMins / 60);
+            document.getElementById('kpi-billable').innerText = Math.round((billableCount / rows.length) * 100) + ' %';
+            document.getElementById('kpi-collabs').innerText = collaborators.size;
+
+            // 2. Charts
+            const ctxCollab = document.getElementById('topCollabChart').getContext('2d');
+            const topCollabs = Object.entries(collabHours)
+                .map(([email, mins]) => ({ email, hours: mins / 60 }))
+                .sort((a, b) => b.hours - a.hours)
+                .slice(0, 10);
+
+            window.topCollabChart = new Chart(ctxCollab, {
+                type: 'bar',
+                data: {
+                    labels: topCollabs.map(c => formatName(c.email)),
+                    datasets: [{
+                        label: 'Heures',
+                        data: topCollabs.map(c => c.hours),
+                        backgroundColor: '#fbbf24',
+                        borderRadius: 4
+                    }]
+                },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+
+            const ctxActivity = document.getElementById('activityChart').getContext('2d');
+            const topActivities = Object.entries(activityCount)
+                .map(([act, mins]) => ({ act, hours: mins / 60 }))
+                .sort((a, b) => b.hours - a.hours)
+                .slice(0, 5);
+
+            window.activityChart = new Chart(ctxActivity, {
+                type: 'doughnut',
+                data: {
+                    labels: topActivities.map(a => a.act),
+                    datasets: [{
+                        data: topActivities.map(a => a.hours),
+                        backgroundColor: ['#60a5fa', '#34d399', '#f87171', '#fbbf24', '#a78bfa']
+                    }]
+                },
+                options: { responsive: true }
+            });
+        }
+
         init();
     </script>
-</body>
 
 </html>
