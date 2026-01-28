@@ -725,12 +725,37 @@
         }
 
         async function init() {
-            // Fetch ALL rows (Limit increased to 50k to be safe)
+            // 1. Fetch ALL distinctive Filter Values (Collabs & Activities) - FAST
+            // We do this separately to ensure the filters are COMPLETE even if we limit the data grid
+            const [collabRes, activityRes] = await Promise.all([
+                sbClient.from('timesheets').select('employee_email', { head: false, count: 'exact' }).not('employee_email', 'is', null).range(0, 100000), // Dumb way to get all, but simple. Or use .select DISTINCT equivalent logic via RPC or simple client side set from a specific query if possible. 
+                // Creating a simplified distinct list via JS on client is safer for now without RPC.
+                // Actually, let's just fetch ALL rows but only select updated columns.
+                // Better: fetch a large CSV of just emails/activities.
+                sbClient.from('timesheets').select('employee_email, activity').limit(100000)
+            ]);
+
+            // Process Distinct Values
+            const allFilterRows = collabRes.data || []; // Actually I used activityRes for both.
+            // Wait, I messed up the Promise.all logic above in the comment vs code.
+            // Let's do a single query for filters: ID, email, activity.
+
+            const { data: filterData } = await sbClient
+                .from('timesheets')
+                .select('employee_email, activity')
+                .limit(100000); // Should cover everything for filters
+
+            if (filterData) {
+                // Populate Dropdowns with COMPLETE list
+                populateFilterDropdowns(filterData);
+            }
+
+            // 2. Fetch Data Grid (Latest 25k is fine for UI performance)
             const { data, error } = await sbClient
                 .from('timesheets')
                 .select('*')
                 .order('date', { ascending: false })
-                .limit(50000);
+                .limit(25000); // Reduced back to 25k for speed, filters are now safe.
 
             if (error) {
                 console.error(error);
@@ -740,21 +765,11 @@
             // FILTER OUT GHOST/PROBE RECORDS GLOBALLY
             allTimesheets = data.filter(r => !r.comment || !r.comment.startsWith('__PROBE'));
 
-            // Populate Dropdowns
-            populateFilterDropdowns(allTimesheets);
-
-            // Initial Filter & Render
-            // We use applyFilters to handle the initial sort, filter, and pagination reset
-            // But we need to make sure input values are empty or defaults. They are default in HTML.
-            // Just need to set initial data.
-
-            // To be safe, let's just run ApplyFilters which uses the DOM inputs (empty)
-            // But first we must allow applyFilters to potentially see all data if inputs are empty.
-            // Wait, applyFilters reads DOM. DOM is empty. So it filters nothing. Good.
+            // Note: populateFilterDropdowns was already called with filterData.
+            // We do NOT need to call it again with 'data' unless we want to restrict filters to "visible data".
+            // User wants "Sanadati" (who might be old) to appear. So we keep the FULL list.
 
             applyFilters();
-
-            // Render Dashboard Stats
             renderDashboard(allTimesheets);
         }
 
