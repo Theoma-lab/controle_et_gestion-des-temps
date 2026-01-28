@@ -355,6 +355,41 @@
 
         <!-- View: DASHBOARD -->
         <div id="view-dashboard" class="flex-1 flex flex-col h-full hidden p-6 overflow-y-auto">
+
+            <!-- Dashboard Filters -->
+            <div
+                class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
+                        </path>
+                    </svg>
+                    <span class="text-sm font-medium text-gray-700">Filtres :</span>
+                </div>
+
+                <!-- Client Filter -->
+                <div class="relative">
+                    <select id="dash-filter-client" onchange="applyDashFilters()"
+                        class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm rounded-md">
+                        <option value="">Tous les Clients</option>
+                    </select>
+                </div>
+
+                <!-- Collab Filter -->
+                <div class="relative">
+                    <select id="dash-filter-collab" onchange="applyDashFilters()"
+                        class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm rounded-md">
+                        <option value="">Tous les Collaborateurs</option>
+                    </select>
+                </div>
+
+                <!-- Reset Btn -->
+                <button onclick="resetDashFilters()" class="text-sm text-gray-500 hover:text-red-500 underline ml-auto">
+                    Réinitialiser
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                 <!-- KPI Cards -->
                 <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
@@ -907,7 +942,67 @@
             // User wants "Sanadati" (who might be old) to appear. So we keep the FULL list.
 
             applyFilters();
-            renderDashboard(allTimesheets);
+
+            // Init Dashboard Filters (Populate)
+            populateDashDropdowns(allTimesheets);
+            // Render Dashboard (Initial)
+            applyDashFilters();
+        }
+
+        // --- DASHBOARD FILTERS ---
+        function populateDashDropdowns(data) {
+            const clientSelect = document.getElementById('dash-filter-client');
+            const collabSelect = document.getElementById('dash-filter-collab');
+
+            // Clients
+            const clients = new Set();
+            data.forEach(r => r.client && clients.add(r.client));
+            const sortedClients = Array.from(clients).sort();
+
+            // Preserve selection if needed? Simple init: Reset.
+            clientSelect.innerHTML = '<option value="">Tous les Clients</option>';
+            sortedClients.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.innerText = c;
+                clientSelect.appendChild(opt);
+            });
+
+            // Collabs
+            const collabs = new Set();
+            data.forEach(r => r.employee_email && collabs.add(r.employee_email));
+            // Use formatName map if possible
+            const sortedCollabs = Array.from(collabs).sort((a, b) => formatName(a).localeCompare(formatName(b)));
+
+            collabSelect.innerHTML = '<option value="">Tous les Collaborateurs</option>';
+            sortedCollabs.forEach(email => {
+                const opt = document.createElement('option');
+                opt.value = email;
+                opt.innerText = formatName(email);
+                collabSelect.appendChild(opt);
+            });
+        }
+
+        function applyDashFilters() {
+            const clientVal = document.getElementById('dash-filter-client').value;
+            const collabVal = document.getElementById('dash-filter-collab').value;
+
+            let filtered = allTimesheets;
+
+            if (clientVal) {
+                filtered = filtered.filter(r => r.client === clientVal);
+            }
+            if (collabVal) {
+                filtered = filtered.filter(r => r.employee_email === collabVal);
+            }
+
+            renderDashboard(filtered);
+        }
+
+        function resetDashFilters() {
+            document.getElementById('dash-filter-client').value = "";
+            document.getElementById('dash-filter-collab').value = "";
+            applyDashFilters();
         }
 
         function formatDuration(mins) {
