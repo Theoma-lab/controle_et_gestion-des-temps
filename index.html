@@ -582,7 +582,7 @@
             // Add "Select All" option? Or just individual. Let's do individual sorted.
             Array.from(activities).sort().forEach(act => {
                 const div = document.createElement('div');
-                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer";
+                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer normal-case"; // Added normal-case
                 div.innerHTML = `
                     <label class="flex items-center w-full cursor-pointer">
                         <input type="checkbox" value="${act}" class="form-checkbox h-4 w-4 text-yellow-500 rounded border-gray-300 mr-2" 
@@ -603,7 +603,7 @@
             Array.from(collabs).sort().forEach(email => {
                 const name = formatName(email);
                 const div = document.createElement('div');
-                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer";
+                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer normal-case"; // Added normal-case
                 div.innerHTML = `
                     <label class="flex items-center w-full cursor-pointer">
                         <input type="checkbox" value="${email}" class="form-checkbox h-4 w-4 text-yellow-500 rounded border-gray-300 mr-2" 
