@@ -899,7 +899,7 @@
             // If integer (e.g. 5.00), return "5 h"
             // If decimal (e.g. 1.50), return "1.50 h" or "1.5 h"? Let's keep 2 decimals for precision or clean trailing zero.
             // parseFloat(h.toFixed(2)) handles trailing zeros nicely: 1.50 -> 1.5. 5.00 -> 5.
-            return `${parseFloat(h.toFixed(2))} h`;
+            return `${parseFloat(h.toFixed(2))}`;
         }
 
         function renderTable(rows) {
