@@ -857,6 +857,10 @@
         }
 
         async function init() {
+            // Restore View Preference IMMEDIATELY to avoid flash of wrong tab
+            const savedView = localStorage.getItem('currentView') || 'data';
+            switchView(savedView);
+
             // 1. Fetch ALL distinctive Filter Values (Collabs & Activities) - FAST
             // We do this separately to ensure the filters are COMPLETE even if we limit the data grid
             const [collabRes, activityRes] = await Promise.all([
@@ -951,11 +955,6 @@
             populateDashDropdowns(allTimesheets);
             // Render Dashboard (Initial)
             applyDashFilters();
-
-            // Restore View Preference
-            const savedView = localStorage.getItem('currentView') || 'data';
-            // Wait a tick to ensure UI is ready? No, synchronous is fine here.
-            switchView(savedView);
         }
 
         // --- DASHBOARD FILTERS ---
