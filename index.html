@@ -1058,14 +1058,22 @@
 
             rows.forEach(row => {
                 const tr = document.createElement('tr');
-                // User requested 'billing_status' (Statut) to be displayed
-                const statusText = row.billing_status || '-';
-                // Simple color styling based on value
-                let statusColor = 'bg-gray-100 text-gray-600';
-                if (statusText.toLowerCase().includes('factur')) statusColor = 'bg-green-100 text-green-800';
-                if (statusText.toLowerCase().includes('attente')) statusColor = 'bg-yellow-100 text-yellow-800';
 
-                const billableBadge = `<span class="${statusColor} text-xs px-2 py-1 rounded-full truncate max-w-[100px] inline-block" title="${statusText}">${statusText}</span>`;
+                // 1. Facturable Badge (Boolean) - Column 7
+                const billableBadge = row.billable
+                    ? `<span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Oui</span>`
+                    : `<span class="text-gray-400 text-xs text-center block w-full">Non</span>`;
+
+                // 2. Statut Badge (Text from billing_status) - Column 8
+                const statusText = row.billing_status || '-';
+                let statusColor = 'bg-gray-100 text-gray-600';
+                if (statusText.toLowerCase().includes('factu') && !statusText.toLowerCase().includes('non')) statusColor = 'bg-green-100 text-green-800';
+                if (statusText.toLowerCase().includes('attente')) statusColor = 'bg-yellow-100 text-yellow-800';
+                if (statusText === '-') statusColor = 'text-gray-400 italic';
+
+                const statusBadge = statusText === '-'
+                    ? `<span class="${statusColor} text-xs">–</span>`
+                    : `<span class="${statusColor} text-xs px-2 py-1 rounded-full truncate max-w-[150px] inline-block" title="${statusText}">${statusText}</span>`;
 
                 tr.innerHTML = `
                     <td class="font-bold text-gray-900">${row.client || '-'}</td>
@@ -1075,6 +1083,7 @@
                     <td class="text-gray-500 italic truncate max-w-xs" title="${row.comment || ''}">${row.comment || '-'}</td>
                     <td class="font-mono text-gray-700 text-right pr-4">${formatDuration(row.duration)}</td>
                     <td class="text-center">${billableBadge}</td>
+                    <td class="text-center">${statusBadge}</td>
                 `;
                 tbody.appendChild(tr);
             });
