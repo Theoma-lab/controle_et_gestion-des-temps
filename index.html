@@ -199,8 +199,10 @@
                             </th>
                             <th scope="col" style="min-width: 180px;">
                                 Collab
-                                <input type="text" id="filter-collab" placeholder="Collab..." class="table-header-input"
-                                    onkeyup="applyFilters()">
+                                <select id="filter-collab" class="table-header-input" onchange="applyFilters()">
+                                    <option value="">Tous</option>
+                                    <!-- Options injected via JS -->
+                                </select>
                             </th>
                             <th scope="col" style="min-width: 100px;">
                                 Date
@@ -209,8 +211,10 @@
                             </th>
                             <th scope="col" style="min-width: 200px;">
                                 Activité
-                                <input type="text" id="filter-activity" placeholder="Filtrer..."
-                                    class="table-header-input" onkeyup="applyFilters()">
+                                <select id="filter-activity" class="table-header-input" onchange="applyFilters()">
+                                    <option value="">Toutes</option>
+                                    <!-- Options injected via JS -->
+                                </select>
                             </th>
                             <th scope="col" style="min-width: 300px;">
                                 Commentaire
@@ -409,13 +413,39 @@
             return d.toLocaleDateString('fr-FR');
         }
 
+        function populateFilterDropdowns(data) {
+            // Activities
+            const activities = new Set();
+            data.forEach(r => { if (r.activity) activities.add(r.activity); });
+            const actSelect = document.getElementById('filter-activity');
+            actSelect.innerHTML = '<option value="">Toutes</option>';
+            Array.from(activities).sort().forEach(act => {
+                const opt = document.createElement('option');
+                opt.value = act;
+                opt.innerText = act;
+                actSelect.appendChild(opt);
+            });
+
+            // Collaborators
+            const collabs = new Set();
+            data.forEach(r => { if (r.employee_email) collabs.add(r.employee_email); });
+            const collabSelect = document.getElementById('filter-collab');
+            collabSelect.innerHTML = '<option value="">Tous</option>';
+            Array.from(collabs).sort().forEach(email => {
+                const opt = document.createElement('option');
+                opt.value = email; // Store email as value
+                opt.innerText = formatName(email); // Show name
+                collabSelect.appendChild(opt);
+            });
+        }
+
         // --- FILTERING LOGIC ---
         function applyFilters() {
             const filters = {
                 client: document.getElementById('filter-client').value.toLowerCase(),
-                collab: document.getElementById('filter-collab').value.toLowerCase(),
+                collab: document.getElementById('filter-collab').value.toLowerCase(), // This will be the email now
                 date: document.getElementById('filter-date').value.toLowerCase(),
-                activity: document.getElementById('filter-activity').value.toLowerCase(),
+                activity: document.getElementById('filter-activity').value, // Strict value
                 comment: document.getElementById('filter-comment').value.toLowerCase(),
                 duration: document.getElementById('filter-duration').value,
                 billable: document.getElementById('filter-billable').value,
@@ -426,13 +456,11 @@
                 // 1. Strings (Includes)
                 if (filters.client && (!row.client || !row.client.toLowerCase().includes(filters.client))) return false;
 
-                // Collab (search in email or formatted name)
-                const collabName = formatName(row.employee_email).toLowerCase();
-                const collabEmail = (row.employee_email || '').toLowerCase();
-                if (filters.collab && !collabName.includes(filters.collab) && !collabEmail.includes(filters.collab)) return false;
+                // Collab (Dropdown uses email value)
+                if (filters.collab && row.employee_email !== filters.collab) return false;
 
-                // Activity
-                if (filters.activity && (!row.activity || !row.activity.toLowerCase().includes(filters.activity))) return false;
+                // Activity (Dropdown exact match)
+                if (filters.activity && row.activity !== filters.activity) return false;
 
                 // Comment
                 if (filters.comment && (!row.comment || !row.comment.toLowerCase().includes(filters.comment))) return false;
@@ -441,7 +469,6 @@
                 if (filters.status && (!row.billing_status || !row.billing_status.toLowerCase().includes(filters.status))) return false;
 
                 // 2. Date (Text Match for now, e.g. "2023-11")
-                // Row date is ISO "2023-11-23T...", checking strict includes on the string
                 if (filters.date && (!row.date || !row.date.includes(filters.date))) return false;
 
                 // 3. Boolean (Billable)
@@ -490,6 +517,13 @@
             }
 
             allTimesheets = data;
+
+            // Populate Dropdowns
+            populateFilterDropdowns(data);
+
+            // Render Default Data Grid (Top 100 recent)
+            // Sort by date desc locally since we fetched 5000
+
 
             // Render Default Data Grid (Top 100 recent)
             // Sort by date desc locally since we fetched 5000
