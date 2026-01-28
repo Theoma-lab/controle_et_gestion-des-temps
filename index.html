@@ -892,6 +892,16 @@
             renderDashboard(allTimesheets);
         }
 
+        function formatDuration(mins) {
+            if (!mins && mins !== 0) return '-';
+            const h = mins / 60;
+            // Clean decimal formatting
+            // If integer (e.g. 5.00), return "5 h"
+            // If decimal (e.g. 1.50), return "1.50 h" or "1.5 h"? Let's keep 2 decimals for precision or clean trailing zero.
+            // parseFloat(h.toFixed(2)) handles trailing zeros nicely: 1.50 -> 1.5. 5.00 -> 5.
+            return `${parseFloat(h.toFixed(2))} h`;
+        }
+
         function renderTable(rows) {
             const tbody = document.getElementById('timesheet-body');
             tbody.innerHTML = '';
@@ -908,7 +918,7 @@
                     <td class="text-gray-500 text-xs">${formatDate(row.date)}</td>
                     <td><span class="badge-activity">${row.activity || ''}</span></td>
                     <td class="text-gray-500 italic truncate max-w-xs" title="${row.comment || ''}">${row.comment || '-'}</td>
-                    <td class="font-mono text-gray-700">${(row.duration / 60).toFixed(2)}</td>
+                    <td class="font-mono text-gray-700 text-right pr-4">${formatDuration(row.duration)}</td>
                     <td class="text-center">${billableBadge}</td>
                 `;
                 tbody.appendChild(tr);
