@@ -766,12 +766,12 @@
                 populateFilterDropdowns(filterData);
             }
 
-            // 2. Fetch Data Grid (Latest 25k is fine for UI performance)
+            // 2. Fetch Data Grid (Fetch ALL records effectively, 100k is safe buffer)
             const { data, error } = await sbClient
                 .from('timesheets')
                 .select('*')
                 .order('date', { ascending: false })
-                .limit(25000); // Reduced back to 25k for speed, filters are now safe.
+                .limit(100000); // Increased to 100k to ensure older records (like Sanadati's) are loaded.
 
             if (error) {
                 console.error(error);
