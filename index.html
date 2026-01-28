@@ -212,7 +212,7 @@
 
         <!-- View: DASHBOARD -->
         <div id="view-dashboard" class="flex-1 flex flex-col h-full hidden p-6 overflow-y-auto">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
                 <!-- KPI Cards -->
                 <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
                     <div>
@@ -251,6 +251,43 @@
                         </svg>
                     </div>
                 </div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Heures Non-Facturables</p>
+                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-non-billable">-</h3>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-full text-red-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Client Principal</p>
+                        <h3 class="text-lg font-bold text-gray-900 mt-1 truncate" id="kpi-main-client">-</h3>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-full text-yellow-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Jours de Travail</p>
+                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-work-days">-</h3>
+                    </div>
+                    <div class="bg-indigo-50 p-3 rounded-full text-indigo-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -259,13 +296,30 @@
                     <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Collaborateurs (Heures)</h3>
                     <canvas id="topCollabChart"></canvas>
                 </div>
-                <!-- Additional container placeholder -->
+                <!-- Activity Chart -->
                 <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Répartition par Activité (Top 5)</h3>
-                    <canvas id="activityChart"></canvas>
+                    <!-- Chart: Activité -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Répartition par Activité (Top 5)</h3>
+                        <div class="h-64 flex justify-center">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+                    <!-- Chart: Top Clients -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Clients (Heures)</h3>
+                        <canvas id="clientChart"></canvas>
+                    </div>
+                    <!-- Chart: Evolution -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <h3 class="text-lg font-bold text-gray-800 mb-4">Évolution Mensuelle</h3>
+                        <canvas id="evolutionChart"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
 
     </main>
 
@@ -299,9 +353,11 @@
 
                 document.getElementById('view-data').classList.add('hidden');
                 document.getElementById('view-dashboard').classList.remove('hidden');
-                // Trigger chart render if needed (fix canvas resize issues)
-                if (window.topCollabChart) window.topCollabChart.resize();
-                if (window.activityChart) window.activityChart.resize();
+
+                // Resize charts
+                [window.topCollabChart, window.activityChart, window.clientChart, window.evolutionChart].forEach(c => {
+                    if (c) c.resize();
+                });
             }
         }
 
@@ -364,38 +420,73 @@
         }
 
         function renderDashboard(rows) {
-            // 1. KPIs
+            // 1. KPIs & Aggregation
             let totalMins = 0;
             let billableCount = 0;
+            let nonBillableMins = 0;
             const collaborators = new Set();
             const activityCount = {};
             const collabHours = {};
+            const clientHours = {};
+            const workDates = new Set();
+            const evolution = {};
 
             rows.forEach(r => {
-                totalMins += (r.duration || 0);
-                if (r.billable) billableCount++;
+                const duration = r.duration || 0;
+                totalMins += duration;
+                if (r.billable) {
+                    billableCount++;
+                } else {
+                    nonBillableMins += duration;
+                }
+
+                // Collab
                 if (r.employee_email) {
                     collaborators.add(r.employee_email);
-                    if (!collabHours[r.employee_email]) collabHours[r.employee_email] = 0;
-                    collabHours[r.employee_email] += (r.duration || 0);
+                    collabHours[r.employee_email] = (collabHours[r.employee_email] || 0) + duration;
                 }
+
+                // Activity
                 const act = r.activity || 'Autre';
-                if (!activityCount[act]) activityCount[act] = 0;
-                activityCount[act] += (r.duration || 0);
+                activityCount[act] = (activityCount[act] || 0) + duration;
+
+                // Client
+                const client = r.client || 'Non Assigné';
+                clientHours[client] = (clientHours[client] || 0) + duration;
+
+                // Evolution (YYYY-MM)
+                if (r.date) {
+                    const monthKey = r.date.substring(0, 7); // 2024-01
+                    evolution[monthKey] = (evolution[monthKey] || 0) + duration;
+                }
+
+                if (r.date) workDates.add(r.date.split('T')[0]);
             });
 
-            document.getElementById('kpi-hours').innerText = Math.round(totalMins / 60);
-            document.getElementById('kpi-billable').innerText = Math.round((billableCount / rows.length) * 100) + ' %';
-            document.getElementById('kpi-collabs').innerText = collaborators.size;
+            // Find main client
+            const mainClient = Object.entries(clientHours).length > 0
+                ? Object.entries(clientHours).sort((a, b) => b[1] - a[1])[0][0]
+                : '-';
 
-            // 2. Charts
-            const ctxCollab = document.getElementById('topCollabChart').getContext('2d');
+            const totalHours = totalMins / 60;
+            const nonBillableHours = nonBillableMins / 60;
+            const billableRate = rows.length > 0 ? Math.round((billableCount / rows.length) * 100) : 0;
+
+            document.getElementById('kpi-hours').innerText = Math.round(totalHours);
+            document.getElementById('kpi-billable').innerText = billableRate + ' %';
+            document.getElementById('kpi-collabs').innerText = collaborators.size;
+            document.getElementById('kpi-non-billable').innerText = Math.round(nonBillableHours);
+            document.getElementById('kpi-main-client').innerText = mainClient;
+            document.getElementById('kpi-work-days').innerText = workDates.size;
+
+            // --- CHART 1: Top Collabs ---
             const topCollabs = Object.entries(collabHours)
                 .map(([email, mins]) => ({ email, hours: mins / 60 }))
                 .sort((a, b) => b.hours - a.hours)
                 .slice(0, 10);
 
-            window.topCollabChart = new Chart(ctxCollab, {
+            if (window.topCollabChart instanceof Chart) window.topCollabChart.destroy();
+            window.topCollabChart = new Chart(document.getElementById('topCollabChart'), {
                 type: 'bar',
                 data: {
                     labels: topCollabs.map(c => formatName(c.email)),
@@ -409,13 +500,14 @@
                 options: { responsive: true, scales: { y: { beginAtZero: true } } }
             });
 
-            const ctxActivity = document.getElementById('activityChart').getContext('2d');
+            // --- CHART 2: Activity ---
             const topActivities = Object.entries(activityCount)
                 .map(([act, mins]) => ({ act, hours: mins / 60 }))
                 .sort((a, b) => b.hours - a.hours)
                 .slice(0, 5);
 
-            window.activityChart = new Chart(ctxActivity, {
+            if (window.activityChart instanceof Chart) window.activityChart.destroy();
+            window.activityChart = new Chart(document.getElementById('activityChart'), {
                 type: 'doughnut',
                 data: {
                     labels: topActivities.map(a => a.act),
@@ -424,7 +516,80 @@
                         backgroundColor: ['#60a5fa', '#34d399', '#f87171', '#fbbf24', '#a78bfa']
                     }]
                 },
-                options: { responsive: true }
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // --- CHART 3: Top Clients ---
+            const topClients = Object.entries(clientHours)
+                .map(([client, mins]) => ({ client, hours: mins / 60 }))
+                .sort((a, b) => b.hours - a.hours)
+                .slice(0, 10);
+
+            window.clientChart = new Chart(ctxClient, {
+                type: 'bar',
+                data: {
+                    labels: topClients.map(c => c.client),
+                    datasets: [{
+                        label: 'Heures',
+                        data: topClients.map(c => c.hours),
+                        backgroundColor: '#34d399',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // 4. Timeline Chart (Weekly)
+            const weeklyData = {};
+            rows.forEach(r => {
+                if (!r.date) return;
+                const d = new Date(r.date);
+                const weekStart = new Date(d);
+                weekStart.setDate(d.getDate() - d.getDay());
+                const weekKey = weekStart.toISOString().split('T')[0];
+
+                if (!weeklyData[weekKey]) weeklyData[weekKey] = 0;
+                weeklyData[weekKey] += (r.duration || 0);
+            });
+
+            const sortedWeeks = Object.entries(weeklyData)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .slice(-12); // Last 12 weeks
+
+            const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
+            window.timelineChart = new Chart(ctxTimeline, {
+                type: 'line',
+                data: {
+                    labels: sortedWeeks.map(w => {
+                        const d = new Date(w[0]);
+                        return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
+                    }),
+                    datasets: [{
+                        label: 'Heures',
+                        data: sortedWeeks.map(w => Math.round((w[1] / 60) * 10) / 10),
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#8b5cf6'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
             });
         }
 
