@@ -437,9 +437,17 @@
 
         function formatName(email) {
             if (!email) return '';
-            if (EMPLOYEE_NAMES[email]) return EMPLOYEE_NAMES[email];
-            const part = email.split('@')[0];
-            return part.charAt(0).toUpperCase() + part.slice(1);
+            let name = '';
+            // Use manual mapping if available
+            if (EMPLOYEE_NAMES[email]) {
+                name = EMPLOYEE_NAMES[email];
+            } else {
+                // Fallback to title case of first part
+                const part = email.split('@')[0];
+                name = part.charAt(0).toUpperCase() + part.slice(1);
+            }
+            // Force Uppercase as requested
+            return name.toUpperCase();
         }
 
         function formatDate(dateStr) {
