@@ -786,17 +786,47 @@
                 populateFilterDropdowns(filterData);
             }
 
-            // 2. Fetch Data Grid (Fetch ALL records effectively, 100k is safe buffer)
-            const { data, error } = await sbClient
-                .from('timesheets')
-                .select('*')
-                .order('date', { ascending: false })
-                .limit(100000); // Increased to 100k to ensure older records (like Sanadati's) are loaded.
+            // 2. Fetch Data Grid (BATCH FETCH to bypass 1000 row limit)
+            let allRows = [];
+            let from = 0;
+            const batchSize = 1000; // API Max seems to be 1000
+            let more = true;
 
-            if (error) {
-                console.error(error);
-                return;
+            // Show loading status
+            document.querySelector('#timesheet-body').innerHTML = `<tr><td colspan="7" class="text-center py-10">Chargement des données... (0 chargés)</td></tr>`;
+
+            while (more) {
+                const to = from + batchSize - 1;
+                const { data, error } = await sbClient
+                    .from('timesheets')
+                    .select('*')
+                    .order('date', { ascending: false })
+                    .range(from, to);
+
+                if (error) {
+                    console.error("Batch Fetch Error", error);
+                    break;
+                }
+
+                if (data && data.length > 0) {
+                    allRows = allRows.concat(data);
+                    // Update UI status
+                    document.querySelector('#timesheet-body').innerHTML = `<tr><td colspan="7" class="text-center py-10">Chargement... (${allRows.length} lignes)</td></tr>`;
+
+                    if (data.length < batchSize) {
+                        more = false; // Last batch
+                    } else {
+                        from += batchSize;
+                    }
+                } else {
+                    more = false;
+                }
+
+                // Safety break to prevent infinite loops if DB is huge (cap at 50k)
+                if (allRows.length >= 50000) more = false;
             }
+
+            const data = allRows; // Compatible with existing code logic
 
             // FILTER OUT GHOST/PROBE RECORDS GLOBALLY
             allTimesheets = data.filter(r => !r.comment || !r.comment.startsWith('__PROBE'));
