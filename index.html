@@ -356,170 +356,188 @@
         <!-- View: DASHBOARD -->
         <div id="view-dashboard" class="flex-1 flex flex-col h-full hidden p-6 overflow-y-auto">
 
-            <!-- Dashboard Filters -->
-            <div
-                class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
-                        </path>
-                    </svg>
-                    <span class="text-sm font-medium text-gray-700">Filtres :</span>
-                </div>
-
-                <!-- Client Filter -->
-                <div class="relative">
-                    <select id="dash-filter-client" onchange="applyDashFilters()"
-                        class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm rounded-md">
-                        <option value="">Tous les Clients</option>
-                    </select>
-                </div>
-
-                <!-- Collab Filter -->
-                <div class="relative">
-                    <select id="dash-filter-collab" onchange="applyDashFilters()"
-                        class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm rounded-md">
-                        <option value="">Tous les Collaborateurs</option>
-                    </select>
-                </div>
-
-                <!-- Reset Btn -->
-                <button onclick="resetDashFilters()" class="text-sm text-gray-500 hover:text-red-500 underline ml-auto">
-                    Réinitialiser
-                </button>
+            <!-- Loader -->
+            <div id="dash-loader" class="flex flex-col items-center justify-center h-full space-y-4">
+                <svg class="animate-spin h-10 w-10 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                <p id="dash-loader-text" class="text-gray-500 font-medium">Initialisation...</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-                <!-- KPI Cards -->
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
-                    title="Cumul total des heures filtrées">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Heures</p>
-                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-hours">-</h3>
-                        <p class="text-xs text-gray-400 mt-1">Volume global</p>
-                    </div>
-                    <div class="bg-blue-50 p-3 rounded-full text-blue-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div id="dash-content" class="hidden w-full h-full block">
+
+                <!-- Dashboard Filters -->
+                <div
+                    class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-6 flex flex-wrap gap-4 items-center">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
-                    title="% d'heures facturables / total">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Taux Facturable</p>
-                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-billable">- %</h3>
-                        <p class="text-xs text-gray-400 mt-1">Rentabilité</p>
-                    </div>
-                    <div class="bg-green-50 p-3 rounded-full text-green-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
-                    title="Nombre de personnes actives">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Collaborateurs</p>
-                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-collabs">-</h3>
-                        <p class="text-xs text-gray-400 mt-1">Actifs</p>
-                    </div>
-                    <div class="bg-purple-50 p-3 rounded-full text-purple-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z">
+                                d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z">
                             </path>
                         </svg>
+                        <span class="text-sm font-medium text-gray-700">Filtres :</span>
                     </div>
-                </div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
-                    title="Heures internes ou non facturées">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Non-Facturables</p>
-                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-non-billable">-</h3>
-                        <p class="text-xs text-gray-400 mt-1">Heures internes</p>
-                    </div>
-                    <div class="bg-red-50 p-3 rounded-full text-red-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
-                            </path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
-                    title="Client avec le plus de volume">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Client Principal</p>
-                        <h3 class="text-lg font-bold text-gray-900 mt-1 truncate" id="kpi-main-client">-</h3>
-                        <p class="text-xs text-gray-400 mt-1">Top Volume</p>
-                    </div>
-                    <div class="bg-yellow-50 p-3 rounded-full text-yellow-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
-                    title="Jours distincts travaillés">
-                    <div>
-                        <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Jours de Travail</p>
-                        <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-work-days">-</h3>
-                        <p class="text-xs text-gray-400 mt-1">Jours saisis</p>
-                    </div>
-                    <div class="bg-indigo-50 p-3 rounded-full text-indigo-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                            </path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Charts Row 1 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
-                    <h3 class="text-lg font-bold text-gray-800">Top 10 Clients (Heures)</h3>
-                    <p class="text-xs text-gray-500 mb-4">Les clients ayant le plus grand volume horaire sur la période.
-                    </p>
-                    <div class="relative flex-1 min-h-0 w-full">
-                        <canvas id="clientChart"></canvas>
+                    <!-- Client Filter -->
+                    <div class="relative">
+                        <select id="dash-filter-client" onchange="applyDashFilters()"
+                            class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm rounded-md">
+                            <option value="">Tous les Clients</option>
+                        </select>
                     </div>
-                </div>
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
-                    <h3 class="text-lg font-bold text-gray-800">Évolution Mensuelle</h3>
-                    <p class="text-xs text-gray-500 mb-4">Volume d'heures travaillées mois par mois.</p>
-                    <div class="relative flex-1 min-h-0 w-full">
-                        <canvas id="evolutionChart"></canvas>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Charts Row 2 -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div id="card-top-collab"
-                    class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
-                    <h3 class="text-lg font-bold text-gray-800">Répartition par Collaborateur (Top 10)</h3>
-                    <p class="text-xs text-gray-500 mb-4">Classement des consultants par volume d'heures saisies.</p>
-                    <div class="relative flex-1 min-h-0 w-full">
-                        <canvas id="topCollabChart"></canvas>
+                    <!-- Collab Filter -->
+                    <div class="relative">
+                        <select id="dash-filter-collab" onchange="applyDashFilters()"
+                            class="block w-64 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm rounded-md">
+                            <option value="">Tous les Collaborateurs</option>
+                        </select>
                     </div>
-                </div>
-                <div id="card-activity"
-                    class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
-                    <h3 class="text-lg font-bold text-gray-800">Top 10 Activités</h3>
-                    <p class="text-xs text-gray-500 mb-4">Types de tâches les plus fréquentes.</p>
-                    <div class="relative flex-1 min-h-0 w-full">
-                        <canvas id="activityChart"></canvas>
-                    </div>
-                </div>
-            </div>
 
+                    <!-- Reset Btn -->
+                    <button onclick="resetDashFilters()"
+                        class="text-sm text-gray-500 hover:text-red-500 underline ml-auto">
+                        Réinitialiser
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+                    <!-- KPI Cards -->
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
+                        title="Cumul total des heures filtrées">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Total Heures</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-hours">-</h3>
+                            <p class="text-xs text-gray-400 mt-1">Volume global</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded-full text-blue-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
+                        title="% d'heures facturables / total">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Taux Facturable</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-billable">- %</h3>
+                            <p class="text-xs text-gray-400 mt-1">Rentabilité</p>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded-full text-green-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
+                        title="Nombre de personnes actives">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Collaborateurs</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-collabs">-</h3>
+                            <p class="text-xs text-gray-400 mt-1">Actifs</p>
+                        </div>
+                        <div class="bg-purple-50 p-3 rounded-full text-purple-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
+                        title="Heures internes ou non facturées">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Non-Facturables</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-non-billable">-</h3>
+                            <p class="text-xs text-gray-400 mt-1">Heures internes</p>
+                        </div>
+                        <div class="bg-red-50 p-3 rounded-full text-red-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
+                        title="Client avec le plus de volume">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Client Principal</p>
+                            <h3 class="text-lg font-bold text-gray-900 mt-1 truncate" id="kpi-main-client">-</h3>
+                            <p class="text-xs text-gray-400 mt-1">Top Volume</p>
+                        </div>
+                        <div class="bg-yellow-50 p-3 rounded-full text-yellow-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between"
+                        title="Jours distincts travaillés">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium uppercase tracking-wider">Jours de Travail</p>
+                            <h3 class="text-3xl font-bold text-gray-900 mt-1" id="kpi-work-days">-</h3>
+                            <p class="text-xs text-gray-400 mt-1">Jours saisis</p>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded-full text-indigo-600">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-800">Top 10 Clients (Heures)</h3>
+                        <p class="text-xs text-gray-500 mb-4">Les clients ayant le plus grand volume horaire sur la
+                            période.
+                        </p>
+                        <div class="relative flex-1 min-h-0 w-full">
+                            <canvas id="clientChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-800">Évolution Mensuelle</h3>
+                        <p class="text-xs text-gray-500 mb-4">Volume d'heures travaillées mois par mois.</p>
+                        <div class="relative flex-1 min-h-0 w-full">
+                            <canvas id="evolutionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div id="card-top-collab"
+                        class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-800">Répartition par Collaborateur (Top 10)</h3>
+                        <p class="text-xs text-gray-500 mb-4">Classement des consultants par volume d'heures saisies.
+                        </p>
+                        <div class="relative flex-1 min-h-0 w-full">
+                            <canvas id="topCollabChart"></canvas>
+                        </div>
+                    </div>
+                    <div id="card-activity"
+                        class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-800">Top 10 Activités</h3>
+                        <p class="text-xs text-gray-500 mb-4">Types de tâches les plus fréquentes.</p>
+                        <div class="relative flex-1 min-h-0 w-full">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
     </main>
@@ -894,6 +912,8 @@
 
             // Show loading status
             document.querySelector('#timesheet-body').innerHTML = `<tr><td colspan="7" class="text-center py-10">Chargement des données... (0 chargés)</td></tr>`;
+            const dashLoaderText = document.getElementById('dash-loader-text');
+            if (dashLoaderText) dashLoaderText.innerText = "Chargement des données... (0)";
 
             while (more) {
                 const to = from + batchSize - 1;
@@ -912,6 +932,7 @@
                     allRows = allRows.concat(data);
                     // Update UI status
                     document.querySelector('#timesheet-body').innerHTML = `<tr><td colspan="7" class="text-center py-10">Chargement... (${allRows.length} lignes)</td></tr>`;
+                    if (dashLoaderText) dashLoaderText.innerText = `Chargement... (${allRows.length} lignes)`;
 
                     if (data.length < batchSize) {
                         more = false; // Last batch
@@ -955,6 +976,12 @@
             populateDashDropdowns(allTimesheets);
             // Render Dashboard (Initial)
             applyDashFilters();
+
+            // Hide Loader, Show Content
+            const dashLoader = document.getElementById('dash-loader');
+            const dashContent = document.getElementById('dash-content');
+            if (dashLoader) dashLoader.classList.add('hidden');
+            if (dashContent) dashContent.classList.remove('hidden');
         }
 
         // --- DASHBOARD FILTERS ---
