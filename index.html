@@ -590,22 +590,19 @@
                 return;
             }
 
-            allTimesheets = data;
+            // FILTER OUT GHOST/PROBE RECORDS GLOBALLY
+            allTimesheets = data.filter(r => r.comment !== '__PROBE__');
 
             // Populate Dropdowns
-            populateFilterDropdowns(data);
+            populateFilterDropdowns(allTimesheets);
 
             // Render Default Data Grid (Top 100 recent)
-            // Sort by date desc locally since we fetched 5000
-
-
-            // Render Default Data Grid (Top 100 recent)
-            // Sort by date desc locally since we fetched 5000
-            const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+            // Use filtered list
+            const sorted = [...allTimesheets].sort((a, b) => new Date(b.date) - new Date(a.date));
             renderTable(sorted.slice(0, 100));
 
             // Render Dashboard Stats
-            renderDashboard(data);
+            renderDashboard(allTimesheets);
         }
 
         function renderTable(rows) {
