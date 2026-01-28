@@ -306,7 +306,6 @@
                             </th>
                             <th scope="col" style="min-width: 150px;">
                                 Statut
-                                Statut
                                 <div class="relative">
                                     <button type="button" onclick="toggleDropdown('dd-status')" id="btn-status"
                                         class="table-header-input text-left flex justify-between items-center bg-white cursor-pointer relative z-0">
@@ -948,7 +947,7 @@
 
             const { data: filterData } = await sbClient
                 .from('timesheets')
-                .select('employee_email, activity')
+                .select('employee_email, activity, billing_status')
                 .limit(100000); // Should cover everything for filters
 
             if (filterData) {
