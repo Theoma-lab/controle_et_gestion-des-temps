@@ -801,6 +801,18 @@
             // FILTER OUT GHOST/PROBE RECORDS GLOBALLY
             allTimesheets = data.filter(r => !r.comment || !r.comment.startsWith('__PROBE'));
 
+            // DEBUG: DIAGNOSIS ON LOAD
+            const debugEl = document.getElementById('debug-log');
+            if (debugEl) {
+                const sanaCount = allTimesheets.filter(r => r.employee_email && r.employee_email.toLowerCase().includes('sanadati')).length;
+                debugEl.innerHTML = `
+                    <div><strong>Diagnosis Report:</strong></div>
+                    <div>Total Rows Loaded: ${allTimesheets.length} / ${data.length} (Raw)</div>
+                    <div>Sanadati Rows in Memory: ${sanaCount}</div>
+                    <div>User Filter Selection: ${JSON.stringify(Array.from(document.querySelectorAll('#dd-collab input:checked')).map(cb => cb.value))}</div>
+                `;
+            }
+
             document.querySelector('h2').innerText = `Suivi des Temps`; // Restore Clean Title
 
             // Note: populateFilterDropdowns was already called with filterData.
