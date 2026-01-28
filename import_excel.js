@@ -39,7 +39,11 @@ async function runImport() {
         "celia@theoma.fr", "charlotte@theoma.fr", "dorothee@theoma.fr", "hugo@theoma.fr",
         "kassandra@theoma.fr", "lise@theoma.fr", "margaux@theoma.fr", "marine@theoma.fr",
         "marion@theoma.fr", "melanie@theoma.fr", "natalie@theoma.fr", "nicolas@theoma.fr",
-        "prune@theoma.fr", "randy@theoma.fr", "romain@theoma.fr", "stephanie@theoma.fr"
+        "prune@theoma.fr", "randy@theoma.fr", "romain@theoma.fr", "stephanie@theoma.fr",
+        // New employees added on user request (28/01)
+        "anais@theoma.fr", "christ-leroy@theoma.fr", "coumba@theoma.fr", "fanny@theoma.fr",
+        "kelly@theoma.fr", "laura@theoma.fr", "leila@theoma.fr", "nasteho@theoma.fr",
+        "regis@theoma.fr", "sanadati@theoma.fr", "sandra@theoma.fr", "sarah@theoma.fr"
     ];
 
     const payload = rows.map(row => {

@@ -373,6 +373,74 @@
             return d.toLocaleDateString('fr-FR');
         }
 
+        // --- FILTERING LOGIC ---
+        function applyFilters() {
+            const filters = {
+                client: document.getElementById('filter-client').value.toLowerCase(),
+                collab: document.getElementById('filter-collab').value.toLowerCase(),
+                date: document.getElementById('filter-date').value.toLowerCase(),
+                activity: document.getElementById('filter-activity').value.toLowerCase(),
+                comment: document.getElementById('filter-comment').value.toLowerCase(),
+                duration: document.getElementById('filter-duration').value,
+                billable: document.getElementById('filter-billable').value,
+                status: document.getElementById('filter-status').value.toLowerCase()
+            };
+
+            const filteredData = allTimesheets.filter(row => {
+                // 1. Strings (Includes)
+                if (filters.client && (!row.client || !row.client.toLowerCase().includes(filters.client))) return false;
+
+                // Collab (search in email or formatted name)
+                const collabName = formatName(row.employee_email).toLowerCase();
+                const collabEmail = (row.employee_email || '').toLowerCase();
+                if (filters.collab && !collabName.includes(filters.collab) && !collabEmail.includes(filters.collab)) return false;
+
+                // Activity
+                if (filters.activity && (!row.activity || !row.activity.toLowerCase().includes(filters.activity))) return false;
+
+                // Comment
+                if (filters.comment && (!row.comment || !row.comment.toLowerCase().includes(filters.comment))) return false;
+
+                // Status
+                if (filters.status && (!row.billing_status || !row.billing_status.toLowerCase().includes(filters.status))) return false;
+
+                // 2. Date (Text Match for now, e.g. "2023-11")
+                // Row date is ISO "2023-11-23T...", checking strict includes on the string
+                if (filters.date && (!row.date || !row.date.includes(filters.date))) return false;
+
+                // 3. Boolean (Billable)
+                if (filters.billable !== "") { // "true" or "false" string from select
+                    const isBillable = row.billable === true;
+                    const filterBool = filters.billable === "true";
+                    if (isBillable !== filterBool) return false;
+                }
+
+                // 4. Number (Duration in Hours)
+                if (filters.duration) {
+                    const rowHours = row.duration / 60; // duration in database is minutes
+                    const inputStr = filters.duration.trim();
+                    let op = '=';
+                    let val = parseFloat(inputStr);
+
+                    if (inputStr.startsWith('>')) { op = '>'; val = parseFloat(inputStr.substring(1)); }
+                    else if (inputStr.startsWith('<')) { op = '<'; val = parseFloat(inputStr.substring(1)); }
+                    else if (inputStr.startsWith('=')) { op = '='; val = parseFloat(inputStr.substring(1)); }
+
+                    if (isNaN(val)) return true; // Ignore if invalid number
+
+                    if (op === '>' && !(rowHours > val)) return false;
+                    if (op === '<' && !(rowHours < val)) return false;
+                    if (op === '=' && Math.abs(rowHours - val) > 0.01) return false; // Approx equality
+                }
+
+                return true;
+            });
+
+            // Update UI
+            renderTable(filteredData.slice(0, 500));
+            // document.getElementById('record-count').innerText = filteredData.length; // Assuming a record-count element exists
+        }
+
         async function init() {
             // Fetch latest 5000 rows (enough for dashboard stats)
             const { data, error } = await sbClient

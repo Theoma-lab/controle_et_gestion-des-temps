@@ -1,0 +1,25 @@
+
+--- Analyse ---
+Collaborateurs uniques trouvés (générés) : 31
+
+⚠️ ANCIENS COLLABORATEURS DÉTECTÉS (12) :
+(Ces personnes sont dans le fichier Excel mais PAS dans votre liste active)
+ - anais@theoma.fr
+ - christ-leroy@theoma.fr
+ - coumba@theoma.fr
+ - fanny@theoma.fr
+ - kelly@theoma.fr
+ - laura@theoma.fr
+ - leila@theoma.fr
+ - nasteho@theoma.fr
+ - regis@theoma.fr
+ - sanadati@theoma.fr
+ - sandra@theoma.fr
+ - sarah@theoma.fr
+
+ℹ️ Collaborateurs actifs SANS saisie dans ce fichier (5) :
+ - celia@theoma.fr
+ - dorothee@theoma.fr
+ - margaux@theoma.fr
+ - nicolas@theoma.fr
+ - prune@theoma.fr
