@@ -199,10 +199,25 @@
                             </th>
                             <th scope="col" style="min-width: 180px;">
                                 Collab
-                                <select id="filter-collab" class="table-header-input" onchange="applyFilters()">
-                                    <option value="">Tous</option>
-                                    <!-- Options injected via JS -->
-                                </select>
+                                <div class="relative">
+                                    <button type="button" onclick="toggleDropdown('dd-collab')" id="btn-collab"
+                                        class="table-header-input text-left flex justify-between items-center bg-white cursor-pointer relative z-0">
+                                        <span id="label-collab" class="truncate block w-full">Tous</span>
+                                        <svg class="h-4 w-4 text-gray-400 absolute right-2" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    <!-- Dropdown Menu -->
+                                    <div id="dd-collab"
+                                        class="hidden absolute top-full left-0 w-64 bg-white border border-gray-200 shadow-xl z-50 max-h-60 overflow-y-auto p-2 rounded-md mt-1">
+                                        <!-- Checkboxes injected via JS -->
+                                    </div>
+                                    <!-- Overlay to close -->
+                                    <div id="overlay-collab" onclick="toggleDropdown('dd-collab')"
+                                        class="hidden fixed inset-0 z-40 bg-transparent cursor-default"></div>
+                                </div>
                             </th>
                             <th scope="col" style="min-width: 220px;">
                                 Date
@@ -216,10 +231,25 @@
                             </th>
                             <th scope="col" style="min-width: 200px;">
                                 Activité
-                                <select id="filter-activity" class="table-header-input" onchange="applyFilters()">
-                                    <option value="">Toutes</option>
-                                    <!-- Options injected via JS -->
-                                </select>
+                                <div class="relative">
+                                    <button type="button" onclick="toggleDropdown('dd-activity')" id="btn-activity"
+                                        class="table-header-input text-left flex justify-between items-center bg-white cursor-pointer relative z-0">
+                                        <span id="label-activity" class="truncate block w-full">Toutes</span>
+                                        <svg class="h-4 w-4 text-gray-400 absolute right-2" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </button>
+                                    <!-- Dropdown Menu -->
+                                    <div id="dd-activity"
+                                        class="hidden absolute top-full left-0 w-64 bg-white border border-gray-200 shadow-xl z-50 max-h-60 overflow-y-auto p-2 rounded-md mt-1">
+                                        <!-- Checkboxes injected via JS -->
+                                    </div>
+                                    <!-- Overlay to close -->
+                                    <div id="overlay-activity" onclick="toggleDropdown('dd-activity')"
+                                        class="hidden fixed inset-0 z-40 bg-transparent cursor-default"></div>
+                                </div>
                             </th>
                             <th scope="col" style="min-width: 300px;">
                                 Commentaire
@@ -524,29 +554,79 @@
             return d.toLocaleDateString('fr-FR');
         }
 
+        // --- MULTI-SELECT HELPERS ---
+        function toggleDropdown(id) {
+            const el = document.getElementById(id);
+            const overlay = document.getElementById(id.replace('dd-', 'overlay-'));
+            if (el.classList.contains('hidden')) {
+                // Hide others first (optional but good UI)
+                document.querySelectorAll('[id^=dd-]').forEach(d => d.classList.add('hidden'));
+                document.querySelectorAll('[id^=overlay-]').forEach(d => d.classList.add('hidden'));
+
+                el.classList.remove('hidden');
+                if (overlay) overlay.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+                if (overlay) overlay.classList.add('hidden');
+            }
+        }
+
+        function updateLabel(type) {
+            const container = document.getElementById(`dd-${type}`);
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]:checked');
+            const label = document.getElementById(`label-${type}`);
+
+            if (checkboxes.length === 0) {
+                label.innerText = type === 'collab' ? 'Tous' : 'Toutes';
+                label.classList.remove('font-bold', 'text-yellow-600');
+            } else {
+                label.innerText = `${checkboxes.length} sélectionné(s)`;
+                label.classList.add('font-bold', 'text-yellow-600');
+            }
+            applyFilters();
+        }
+
         function populateFilterDropdowns(data) {
             // Activities
             const activities = new Set();
             data.forEach(r => { if (r.activity) activities.add(r.activity); });
-            const actSelect = document.getElementById('filter-activity');
-            actSelect.innerHTML = '<option value="">Toutes</option>';
+
+            const ddActivity = document.getElementById('dd-activity');
+            ddActivity.innerHTML = '';
+
+            // Add "Select All" option? Or just individual. Let's do individual sorted.
             Array.from(activities).sort().forEach(act => {
-                const opt = document.createElement('option');
-                opt.value = act;
-                opt.innerText = act;
-                actSelect.appendChild(opt);
+                const div = document.createElement('div');
+                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer";
+                div.innerHTML = `
+                    <label class="flex items-center w-full cursor-pointer">
+                        <input type="checkbox" value="${act}" class="form-checkbox h-4 w-4 text-yellow-500 rounded border-gray-300 mr-2" 
+                            onchange="updateLabel('activity')">
+                        <span class="text-xs text-gray-700">${act}</span>
+                    </label>
+                `;
+                ddActivity.appendChild(div);
             });
 
             // Collaborators
             const collabs = new Set();
             data.forEach(r => { if (r.employee_email) collabs.add(r.employee_email); });
-            const collabSelect = document.getElementById('filter-collab');
-            collabSelect.innerHTML = '<option value="">Tous</option>';
+
+            const ddCollab = document.getElementById('dd-collab');
+            ddCollab.innerHTML = '';
+
             Array.from(collabs).sort().forEach(email => {
-                const opt = document.createElement('option');
-                opt.value = email; // Store email as value
-                opt.innerText = formatName(email); // Show name
-                collabSelect.appendChild(opt);
+                const name = formatName(email);
+                const div = document.createElement('div');
+                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer";
+                div.innerHTML = `
+                    <label class="flex items-center w-full cursor-pointer">
+                        <input type="checkbox" value="${email}" class="form-checkbox h-4 w-4 text-yellow-500 rounded border-gray-300 mr-2" 
+                            onchange="updateLabel('collab')">
+                        <span class="text-xs text-gray-700">${name}</span>
+                    </label>
+                `;
+                ddCollab.appendChild(div);
             });
         }
 
@@ -577,12 +657,16 @@
 
         // --- FILTERING LOGIC ---
         function applyFilters() {
+            // Get selected multi-values
+            const selectedCollabs = Array.from(document.querySelectorAll('#dd-collab input:checked')).map(cb => cb.value);
+            const selectedActivities = Array.from(document.querySelectorAll('#dd-activity input:checked')).map(cb => cb.value);
+
             const filters = {
                 client: document.getElementById('filter-client').value.toLowerCase(),
-                collab: document.getElementById('filter-collab').value.toLowerCase(), // This will be the email now
+                // collab: handled by selectedCollabs
                 dateStart: document.getElementById('filter-date-start').value,
                 dateEnd: document.getElementById('filter-date-end').value,
-                activity: document.getElementById('filter-activity').value, // Strict value
+                // activity: handled by selectedActivities
                 comment: document.getElementById('filter-comment').value.toLowerCase(),
                 duration: document.getElementById('filter-duration').value,
                 billable: document.getElementById('filter-billable').value,
@@ -596,11 +680,12 @@
                 // 1. Strings (Includes)
                 if (filters.client && (!row.client || !row.client.toLowerCase().includes(filters.client))) return false;
 
-                // Collab (Dropdown uses email value)
-                if (filters.collab && row.employee_email !== filters.collab) return false;
+                // Collab (Multi-select)
+                // If list is empty => ALL. If not empty => MUST be included.
+                if (selectedCollabs.length > 0 && !selectedCollabs.includes(row.employee_email)) return false;
 
-                // Activity (Dropdown exact match)
-                if (filters.activity && row.activity !== filters.activity) return false;
+                // Activity (Multi-select)
+                if (selectedActivities.length > 0 && !selectedActivities.includes(row.activity)) return false;
 
                 // Comment
                 if (filters.comment && (!row.comment || !row.comment.toLowerCase().includes(filters.comment))) return false;
