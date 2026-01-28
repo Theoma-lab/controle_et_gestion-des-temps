@@ -785,6 +785,10 @@
             // FILTER OUT GHOST/PROBE RECORDS GLOBALLY
             allTimesheets = data.filter(r => !r.comment || !r.comment.startsWith('__PROBE'));
 
+            // DEBUG: Check Sanadati count explicitly
+            const sanaCount = allTimesheets.filter(r => r.employee_email && r.employee_email.includes('sanadati')).length;
+            document.querySelector('h2').innerText = `Suivi des Temps (Sanadati: ${sanaCount})`;
+
             // Note: populateFilterDropdowns was already called with filterData.
             // We do NOT need to call it again with 'data' unless we want to restrict filters to "visible data".
             // User wants "Sanadati" (who might be old) to appear. So we keep the FULL list.
