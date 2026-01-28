@@ -685,8 +685,19 @@
                 // If list is empty => ALL. If not empty => MUST be included.
                 if (selectedCollabs.length > 0) {
                     if (!row.employee_email) return false;
-                    // Robust check: Compare strictly lowercased
-                    if (!selectedCollabs.includes(row.employee_email.toLowerCase())) return false;
+
+                    const rowEmail = row.employee_email.toLowerCase().trim(); // added trim just in case
+                    const match = selectedCollabs.includes(rowEmail);
+
+                    // DEBUG: Log Sanadati specific failures
+                    if (rowEmail.includes('sanadati') && !match) {
+                        console.log('Sanadati Rejected:', { rowEmail, selectedCollabs });
+                    }
+                    if (rowEmail.includes('sanadati') && match) {
+                        // console.log('Sanadati Accepted'); 
+                    }
+
+                    if (!match) return false;
                 }
 
                 // Activity (Multi-select)
@@ -785,9 +796,7 @@
             // FILTER OUT GHOST/PROBE RECORDS GLOBALLY
             allTimesheets = data.filter(r => !r.comment || !r.comment.startsWith('__PROBE'));
 
-            // DEBUG: Check Sanadati count explicitly
-            const sanaCount = allTimesheets.filter(r => r.employee_email && r.employee_email.includes('sanadati')).length;
-            document.querySelector('h2').innerText = `Suivi des Temps (Sanadati: ${sanaCount})`;
+            document.querySelector('h2').innerText = `Suivi des Temps`; // Restore Clean Title
 
             // Note: populateFilterDropdowns was already called with filterData.
             // We do NOT need to call it again with 'data' unless we want to restrict filters to "visible data".
