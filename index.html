@@ -519,33 +519,18 @@
 
         function formatName(email) {
             if (!email) return '';
-            let fullName = '';
 
-            // 1. Get raw string (from Map or Email)
+            // 1. Return exact map value if exists (Respects Excel/User Casing)
             if (EMPLOYEE_NAMES[email]) {
-                fullName = EMPLOYEE_NAMES[email];
-            } else {
-                // Fallback: derive from email (jean.dupont -> Jean Dupont)
-                const local = email.split('@')[0];
-                fullName = local.replace('.', ' ');
+                return EMPLOYEE_NAMES[email];
             }
 
-            // 2. Split First / Last
-            const parts = fullName.trim().split(/\s+/);
-            if (parts.length === 0) return '';
-
-            // 3. Format First Name (Title Case, handle hyphens)
-            const firstName = parts[0].split('-').map(p =>
+            // 2. Fallback: simple Title Case for email (jean.dupont -> Jean Dupont)
+            const local = email.split('@')[0];
+            const clean = local.replace('.', ' ');
+            return clean.split(/[^a-zA-Z0-9]/).map(p =>
                 p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
-            ).join('-');
-
-            // 4. Format Last Name (All Caps)
-            if (parts.length > 1) {
-                const lastName = parts.slice(1).join(' ').toUpperCase();
-                return `${firstName} ${lastName}`;
-            }
-
-            return firstName;
+            ).join(' ');
         }
 
         function formatDate(dateStr) {
@@ -740,12 +725,12 @@
         }
 
         async function init() {
-            // Fetch latest 25000 rows (increased from 5000), SORTED by date
+            // Fetch ALL rows (Limit increased to 50k to be safe)
             const { data, error } = await sbClient
                 .from('timesheets')
                 .select('*')
-                .order('date', { ascending: false }) // Critical: get newest first
-                .limit(25000);
+                .order('date', { ascending: false })
+                .limit(50000);
 
             if (error) {
                 console.error(error);
