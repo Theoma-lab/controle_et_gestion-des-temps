@@ -448,18 +448,18 @@
 
             <!-- Charts Row 1 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
                     <h3 class="text-lg font-bold text-gray-800">Top 10 Clients (Heures)</h3>
                     <p class="text-xs text-gray-500 mb-4">Les clients ayant le plus grand volume horaire sur la période.
                     </p>
-                    <div class="relative h-full w-full">
+                    <div class="relative flex-1 min-h-0 w-full">
                         <canvas id="clientChart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
                     <h3 class="text-lg font-bold text-gray-800">Évolution Mensuelle</h3>
                     <p class="text-xs text-gray-500 mb-4">Volume d'heures travaillées mois par mois.</p>
-                    <div class="relative h-full w-full">
+                    <div class="relative flex-1 min-h-0 w-full">
                         <canvas id="evolutionChart"></canvas>
                     </div>
                 </div>
@@ -467,21 +467,22 @@
 
             <!-- Charts Row 2 -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
                     <h3 class="text-lg font-bold text-gray-800">Répartition par Collaborateur (Top 10)</h3>
                     <p class="text-xs text-gray-500 mb-4">Classement des consultants par volume d'heures saisies.</p>
-                    <div class="relative h-full w-full">
+                    <div class="relative flex-1 min-h-0 w-full">
                         <canvas id="topCollabChart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-[32rem] flex flex-col">
                     <h3 class="text-lg font-bold text-gray-800">Top 10 Activités</h3>
                     <p class="text-xs text-gray-500 mb-4">Types de tâches les plus fréquentes.</p>
-                    <div class="relative h-full w-full">
+                    <div class="relative flex-1 min-h-0 w-full">
                         <canvas id="activityChart"></canvas>
                     </div>
                 </div>
             </div>
+
         </div>
 
     </main>
