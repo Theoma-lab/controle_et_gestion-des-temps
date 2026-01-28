@@ -972,12 +972,15 @@
 
             applyFilters();
 
-            // Init Dashboard Filters (Populate)
-            populateDashDropdowns(allTimesheets);
-            // Render Dashboard (Initial)
-            applyDashFilters();
+            // Init Dashboard Filters & Render
+            try {
+                populateDashDropdowns(allTimesheets);
+                applyDashFilters();
+            } catch (err) {
+                console.error("Dashboard Init Error:", err);
+            }
 
-            // Hide Loader, Show Content
+            // Hide Loader, Show Content (ALWAYS)
             const dashLoader = document.getElementById('dash-loader');
             const dashContent = document.getElementById('dash-content');
             if (dashLoader) dashLoader.classList.add('hidden');
