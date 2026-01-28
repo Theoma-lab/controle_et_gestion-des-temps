@@ -204,10 +204,15 @@
                                     <!-- Options injected via JS -->
                                 </select>
                             </th>
-                            <th scope="col" style="min-width: 100px;">
+                            <th scope="col" style="min-width: 220px;">
                                 Date
-                                <input type="text" id="filter-date" placeholder="AAAA-MM-JJ" class="table-header-input"
-                                    onkeyup="applyFilters()">
+                                <div class="flex space-x-1">
+                                    <input type="date" id="filter-date-start" class="table-header-input w-24 text-xs"
+                                        onchange="applyFilters()">
+                                    <span class="text-gray-400">-</span>
+                                    <input type="date" id="filter-date-end" class="table-header-input w-24 text-xs"
+                                        onchange="applyFilters()">
+                                </div>
                             </th>
                             <th scope="col" style="min-width: 200px;">
                                 Activité
@@ -299,7 +304,8 @@
                     <div class="bg-red-50 p-3 rounded-full text-red-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                            </path>
                         </svg>
                     </div>
                 </div>
@@ -330,36 +336,38 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Chart Container -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Collaborateurs (Heures)</h3>
-                    <canvas id="topCollabChart"></canvas>
-                </div>
-                <!-- Activity Chart -->
-                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <!-- Chart: Activité -->
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Répartition par Activité (Top 5)</h3>
-                        <div class="h-64 flex justify-center">
-                            <canvas id="activityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
-                    <!-- Chart: Top Clients -->
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Clients (Heures)</h3>
+            <!-- Charts Row 1 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Clients (Heures)</h3>
+                    <div class="relative h-full w-full">
                         <canvas id="clientChart"></canvas>
                     </div>
-                    <!-- Chart: Evolution -->
-                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                        <h3 class="text-lg font-bold text-gray-800 mb-4">Évolution Mensuelle</h3>
+                </div>
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Évolution Mensuelle</h3>
+                    <div class="relative h-full w-full">
                         <canvas id="evolutionChart"></canvas>
                     </div>
                 </div>
             </div>
+
+            <!-- Charts Row 2 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Répartition par Collaborateur (Top 10)</h3>
+                    <div class="relative h-full w-full">
+                        <canvas id="topCollabChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-96">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Top 10 Activités</h3>
+                    <div class="relative h-full w-full">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </main>
 
@@ -367,7 +375,7 @@
         const SB_URL = "https://xvqwgndjznvewqgalpaq.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2cXdnbmRqem52ZXdxZ2FscGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0MjA4NTMsImV4cCI6MjA4NDk5Njg1M30.TlnYV7VgsmV7kOsGlRoFdInLhie8TnLnGOpLMe411ZA";
 
-        const sbClient = window.supabase.createClient(SB_URL, SB_KEY);
+        const sbClient = supabase.createClient(SB_URL, SB_KEY);
 
         // Global data cache
         let allTimesheets = [];
@@ -503,7 +511,8 @@
             const filters = {
                 client: document.getElementById('filter-client').value.toLowerCase(),
                 collab: document.getElementById('filter-collab').value.toLowerCase(), // This will be the email now
-                date: document.getElementById('filter-date').value.toLowerCase(),
+                dateStart: document.getElementById('filter-date-start').value,
+                dateEnd: document.getElementById('filter-date-end').value,
                 activity: document.getElementById('filter-activity').value, // Strict value
                 comment: document.getElementById('filter-comment').value.toLowerCase(),
                 duration: document.getElementById('filter-duration').value,
@@ -527,8 +536,10 @@
                 // Status
                 if (filters.status && (!row.billing_status || !row.billing_status.toLowerCase().includes(filters.status))) return false;
 
-                // 2. Date (Text Match for now, e.g. "2023-11")
-                if (filters.date && (!row.date || !row.date.includes(filters.date))) return false;
+                // 2. Date Range
+                const rowDate = row.date ? row.date.split('T')[0] : '';
+                if (filters.dateStart && rowDate < filters.dateStart) return false;
+                if (filters.dateEnd && rowDate > filters.dateEnd) return false;
 
                 // 3. Boolean (Billable)
                 if (filters.billable !== "") { // "true" or "false" string from select
@@ -564,11 +575,11 @@
         }
 
         async function init() {
-            // Fetch latest 5000 rows (enough for dashboard stats)
+            // Fetch latest 25000 rows (increased from 5000)
             const { data, error } = await sbClient
                 .from('timesheets')
                 .select('*')
-                .limit(5000); // 5000 for good measure
+                .limit(25000); // 25000 to cover all rows
 
             if (error) {
                 console.error(error);
