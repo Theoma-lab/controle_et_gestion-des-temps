@@ -967,7 +967,8 @@
                 provider: 'azure',
                 options: {
                     scopes: 'email',
-                    redirectTo: window.location.href // Redirect back to current page
+                    // Strip existing hash/search to prevent "Query String Too Long" errors on retry
+                    redirectTo: window.location.origin + window.location.pathname
                 }
             });
             if (error) alert("Erreur de connexion: " + error.message);
