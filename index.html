@@ -578,11 +578,12 @@
         }
 
         async function init() {
-            // Fetch latest 25000 rows (increased from 5000)
+            // Fetch latest 25000 rows (increased from 5000), SORTED by date
             const { data, error } = await sbClient
                 .from('timesheets')
                 .select('*')
-                .limit(25000); // 25000 to cover all rows
+                .order('date', { ascending: false }) // Critical: get newest first
+                .limit(25000);
 
             if (error) {
                 console.error(error);
