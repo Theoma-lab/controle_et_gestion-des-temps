@@ -192,13 +192,49 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50 sticky top-0 z-10 shadow-sm">
                         <tr>
-                            <th scope="col" style="min-width: 150px;">Client</th>
-                            <th scope="col" style="min-width: 180px;">Collab</th>
-                            <th scope="col" style="min-width: 100px;">Date</th>
-                            <th scope="col" style="min-width: 200px;">Activité</th>
-                            <th scope="col" style="min-width: 300px;">Commentaire</th>
-                            <th scope="col" style="min-width: 100px;">Durée (h)</th>
-                            <th scope="col" style="min-width: 120px;">Facturable</th>
+                            <th scope="col" style="min-width: 150px;">
+                                Client
+                                <input type="text" id="filter-client" placeholder="Filtrer..."
+                                    class="table-header-input" onkeyup="applyFilters()">
+                            </th>
+                            <th scope="col" style="min-width: 180px;">
+                                Collab
+                                <input type="text" id="filter-collab" placeholder="Collab..." class="table-header-input"
+                                    onkeyup="applyFilters()">
+                            </th>
+                            <th scope="col" style="min-width: 100px;">
+                                Date
+                                <input type="text" id="filter-date" placeholder="AAAA-MM-JJ" class="table-header-input"
+                                    onkeyup="applyFilters()">
+                            </th>
+                            <th scope="col" style="min-width: 200px;">
+                                Activité
+                                <input type="text" id="filter-activity" placeholder="Filtrer..."
+                                    class="table-header-input" onkeyup="applyFilters()">
+                            </th>
+                            <th scope="col" style="min-width: 300px;">
+                                Commentaire
+                                <input type="text" id="filter-comment" placeholder="Recherche..."
+                                    class="table-header-input" onkeyup="applyFilters()">
+                            </th>
+                            <th scope="col" style="min-width: 100px;">
+                                Durée (h)
+                                <input type="text" id="filter-duration" placeholder="> 0" class="table-header-input"
+                                    onkeyup="applyFilters()">
+                            </th>
+                            <th scope="col" style="min-width: 120px;">
+                                Facturable
+                                <select id="filter-billable" class="table-header-input" onchange="applyFilters()">
+                                    <option value="">Tous</option>
+                                    <option value="true">Oui</option>
+                                    <option value="false">Non</option>
+                                </select>
+                            </th>
+                            <th scope="col" style="min-width: 150px;">
+                                Statut
+                                <input type="text" id="filter-status" placeholder="Statut..." class="table-header-input"
+                                    onkeyup="applyFilters()">
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="timesheet-body" class="bg-white divide-y divide-gray-200">
@@ -593,14 +629,16 @@
                 .sort((a, b) => b.hours - a.hours)
                 .slice(0, 10);
 
-            window.clientChart = new Chart(ctxClient, {
+            // Fix: Use correct element ID and window variable
+            if (window.clientChart instanceof Chart) window.clientChart.destroy();
+            window.clientChart = new Chart(document.getElementById('clientChart'), {
                 type: 'bar',
                 data: {
                     labels: topClients.map(c => c.client),
                     datasets: [{
                         label: 'Heures',
                         data: topClients.map(c => c.hours),
-                        backgroundColor: '#34d399',
+                        backgroundColor: '#8b5cf6', // Purple
                         borderRadius: 4
                     }]
                 },
@@ -614,41 +652,34 @@
                 }
             });
 
-            // 4. Timeline Chart (Weekly)
-            const weeklyData = {};
+            // 4. Evolution Chart (Monthly)
+            // Group by Month (YYYY-MM)
+            const evolutionData = {};
             rows.forEach(r => {
                 if (!r.date) return;
-                const d = new Date(r.date);
-                const weekStart = new Date(d);
-                weekStart.setDate(d.getDate() - d.getDay());
-                const weekKey = weekStart.toISOString().split('T')[0];
-
-                if (!weeklyData[weekKey]) weeklyData[weekKey] = 0;
-                weeklyData[weekKey] += (r.duration || 0);
+                const monthKey = r.date.substring(0, 7); // 2024-01
+                if (!evolutionData[monthKey]) evolutionData[monthKey] = 0;
+                evolutionData[monthKey] += (r.duration || 0);
             });
 
-            const sortedWeeks = Object.entries(weeklyData)
-                .sort((a, b) => a[0].localeCompare(b[0]))
-                .slice(-12); // Last 12 weeks
+            const sortedMonths = Object.keys(evolutionData).sort();
 
-            const ctxTimeline = document.getElementById('timelineChart').getContext('2d');
-            window.timelineChart = new Chart(ctxTimeline, {
+            // Fix: Use CORRECT element ID 'evolutionChart' and variable window.evolutionChart
+            if (window.evolutionChart instanceof Chart) window.evolutionChart.destroy();
+            window.evolutionChart = new Chart(document.getElementById('evolutionChart'), {
                 type: 'line',
                 data: {
-                    labels: sortedWeeks.map(w => {
-                        const d = new Date(w[0]);
-                        return d.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
-                    }),
+                    labels: sortedMonths,
                     datasets: [{
-                        label: 'Heures',
-                        data: sortedWeeks.map(w => Math.round((w[1] / 60) * 10) / 10),
-                        borderColor: '#8b5cf6',
-                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        label: 'Heures Totales',
+                        data: sortedMonths.map(m => Math.round((evolutionData[m] / 60) * 10) / 10),
+                        borderColor: '#10b981', // Green
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3,
                         pointRadius: 4,
-                        pointBackgroundColor: '#8b5cf6'
+                        pointBackgroundColor: '#10b981'
                     }]
                 },
                 options: {
