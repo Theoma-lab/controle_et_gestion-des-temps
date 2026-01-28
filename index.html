@@ -253,6 +253,47 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Pagination Controls -->
+            <div class="bg-gray-50 px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700" id="record-count">
+                            résultats
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button onclick="changePage(-1)" id="btn-prev"
+                                class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Previous</span>
+                                <!-- Heroicon name: solid/chevron-left -->
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                        d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <span id="page-info"
+                                class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700">
+                                Page 1
+                            </span>
+                            <button onclick="changePage(1)" id="btn-next"
+                                class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                <span class="sr-only">Next</span>
+                                <!-- Heroicon name: solid/chevron-right -->
+                                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- View: DASHBOARD -->
@@ -379,6 +420,9 @@
 
         // Global data cache
         let allTimesheets = [];
+        let currentFilteredData = [];
+        let currentPage = 1;
+        const pageSize = 50;
 
         function switchView(viewName) {
             // Update Tab Styles
@@ -506,6 +550,31 @@
             });
         }
 
+        // --- PAGINATION LOGIC ---
+        function changePage(delta) {
+            const maxPage = Math.ceil(currentFilteredData.length / pageSize) || 1;
+            const newPage = currentPage + delta;
+
+            if (newPage >= 1 && newPage <= maxPage) {
+                currentPage = newPage;
+                renderPaginatedTable();
+            }
+        }
+
+        function renderPaginatedTable() {
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pageData = currentFilteredData.slice(start, end);
+
+            renderTable(pageData); // renderTable only renders what it is given
+
+            // Update Controls
+            document.getElementById('page-info').innerText = `Page ${currentPage} / ${Math.ceil(currentFilteredData.length / pageSize) || 1}`;
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage >= (Math.ceil(currentFilteredData.length / pageSize) || 1);
+            document.getElementById('record-count').innerText = `${currentFilteredData.length} résultats`;
+        }
+
         // --- FILTERING LOGIC ---
         function applyFilters() {
             const filters = {
@@ -579,9 +648,10 @@
                 return db - da;
             });
 
-            // Update UI
-            renderTable(filteredData.slice(0, 500));
-            // document.getElementById('record-count').innerText = filteredData.length; // Assuming a record-count element exists
+            // Update State
+            currentFilteredData = filteredData;
+            currentPage = 1; // Reset to first page
+            renderPaginatedTable();
         }
 
         async function init() {
@@ -603,10 +673,16 @@
             // Populate Dropdowns
             populateFilterDropdowns(allTimesheets);
 
-            // Render Default Data Grid (Top 100 recent)
-            // Use filtered list
-            const sorted = [...allTimesheets].sort((a, b) => new Date(b.date) - new Date(a.date));
-            renderTable(sorted.slice(0, 100));
+            // Initial Filter & Render
+            // We use applyFilters to handle the initial sort, filter, and pagination reset
+            // But we need to make sure input values are empty or defaults. They are default in HTML.
+            // Just need to set initial data.
+
+            // To be safe, let's just run ApplyFilters which uses the DOM inputs (empty)
+            // But first we must allow applyFilters to potentially see all data if inputs are empty.
+            // Wait, applyFilters reads DOM. DOM is empty. So it filters nothing. Good.
+
+            applyFilters();
 
             // Render Dashboard Stats
             renderDashboard(allTimesheets);
