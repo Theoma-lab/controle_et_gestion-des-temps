@@ -125,7 +125,20 @@ async function main() {
         }
     }
 
+    // ... (after import loop)
     console.log("🎉 Import terminé !");
+
+    // Save Name Map for Frontend
+    const nameMap = {};
+    rows.forEach(r => {
+        const name = r['Collaborateur'];
+        if (name) {
+            const email = formatEmail(name);
+            if (email) nameMap[email] = name;
+        }
+    });
+    fs.writeFileSync('employee_map.json', JSON.stringify(nameMap, null, 2));
+    console.log("💾 Map des noms sauvegardée dans employee_map.json");
 }
 
 main();

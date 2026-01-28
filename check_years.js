@@ -20,32 +20,26 @@ async function check() {
         .order('date', { ascending: false })
         .limit(1);
 
-    // Get Year Counts (approx check via sampling or if possible via RPC, but simpler to just get min/max here)
-    // Actually, getting all years is better.
-    // Let's just fetch all dates (lightweight column) and distinct them locally if not too huge.
-    // 23k rows of dates is nothing.
-
-    // Fetch ALL dates
-    const { data: allDates, error: allErr } = await supabase
+    // Fetch ALL years (Millésime)
+    const { data: allRows, error: allErr } = await supabase
         .from('timesheets')
-        .select('date');
+        .select('year')
+        .limit(50000);
 
     if (allErr) {
         console.error("Error:", allErr);
         return;
     }
 
-    const years = new Set();
-    allDates.forEach(r => {
-        if (r.date) {
-            years.add(r.date.substring(0, 4));
-        }
+    const millesimes = new Set();
+    allRows.forEach(r => {
+        if (r.year) millesimes.add(r.year);
     });
 
-    console.log("Years found in DB:", Array.from(years).sort());
+    console.log("Millésimes found in DB:", Array.from(millesimes).sort());
     if (minData && minData[0]) console.log("Oldest Date:", minData[0].date);
     if (maxData && maxData[0]) console.log("Newest Date:", maxData[0].date);
-    console.log("Total Records:", allDates.length);
+    console.log("Total Records:", allRows.length);
 }
 
 check();
