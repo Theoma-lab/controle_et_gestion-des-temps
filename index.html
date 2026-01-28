@@ -520,17 +520,32 @@
         function formatName(email) {
             if (!email) return '';
 
-            // 1. Return exact map value if exists (Respects Excel/User Casing)
+            let fullName = '';
+            // 1. Get raw string (from Map or Email)
             if (EMPLOYEE_NAMES[email]) {
-                return EMPLOYEE_NAMES[email];
+                fullName = EMPLOYEE_NAMES[email];
+            } else {
+                // Fallback: derive from email (jean.dupont -> Jean Dupont)
+                const local = email.split('@')[0];
+                fullName = local.replace('.', ' ');
             }
 
-            // 2. Fallback: simple Title Case for email (jean.dupont -> Jean Dupont)
-            const local = email.split('@')[0];
-            const clean = local.replace('.', ' ');
-            return clean.split(/[^a-zA-Z0-9]/).map(p =>
-                p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
-            ).join(' ');
+            // 2. Force Format: Firstname LASTNAME
+            fullName = fullName.trim();
+            const parts = fullName.split(/\s+/); // split by whitespace
+
+            if (parts.length === 0) return '';
+
+            // First Name: Title Case
+            const firstName = parts[0].charAt(0).toUpperCase() + parts[0].slice(1).toLowerCase();
+
+            // Last Name(s): UPPER CASE
+            if (parts.length > 1) {
+                const lastName = parts.slice(1).join(' ').toUpperCase();
+                return `${firstName} ${lastName}`;
+            }
+
+            return firstName;
         }
 
         function formatDate(dateStr) {
@@ -594,16 +609,17 @@
             });
 
             // Collaborators
-            const collabs = new Set();
+            // SOURCE FROM MAP KEYS + DATA EMAILS to ensure EVERYONE is there
+            const collabs = new Set(Object.keys(EMPLOYEE_NAMES)); // Start with everyone known
             data.forEach(r => { if (r.employee_email) collabs.add(r.employee_email); });
 
             const ddCollab = document.getElementById('dd-collab');
             ddCollab.innerHTML = '';
 
             Array.from(collabs).sort().forEach(email => {
-                const name = formatName(email);
+                const name = formatName(email); // This will now apply the First LAST format
                 const div = document.createElement('div');
-                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer normal-case"; // Added normal-case
+                div.className = "flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer normal-case";
                 div.innerHTML = `
                     <label class="flex items-center w-full cursor-pointer">
                         <input type="checkbox" value="${email}" class="form-checkbox h-4 w-4 text-yellow-500 rounded border-gray-300 mr-2" 
