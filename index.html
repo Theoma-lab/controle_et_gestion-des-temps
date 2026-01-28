@@ -437,17 +437,33 @@
 
         function formatName(email) {
             if (!email) return '';
-            let name = '';
-            // Use manual mapping if available
+            let fullName = '';
+
+            // 1. Get raw string (from Map or Email)
             if (EMPLOYEE_NAMES[email]) {
-                name = EMPLOYEE_NAMES[email];
+                fullName = EMPLOYEE_NAMES[email];
             } else {
-                // Fallback to title case of first part
-                const part = email.split('@')[0];
-                name = part.charAt(0).toUpperCase() + part.slice(1);
+                // Fallback: derive from email (jean.dupont -> Jean Dupont)
+                const local = email.split('@')[0];
+                fullName = local.replace('.', ' ');
             }
-            // Force Uppercase as requested
-            return name.toUpperCase();
+
+            // 2. Split First / Last
+            const parts = fullName.trim().split(/\s+/);
+            if (parts.length === 0) return '';
+
+            // 3. Format First Name (Title Case, handle hyphens)
+            const firstName = parts[0].split('-').map(p =>
+                p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()
+            ).join('-');
+
+            // 4. Format Last Name (All Caps)
+            if (parts.length > 1) {
+                const lastName = parts.slice(1).join(' ').toUpperCase();
+                return `${firstName} ${lastName}`;
+            }
+
+            return firstName;
         }
 
         function formatDate(dateStr) {
