@@ -576,9 +576,8 @@
                 document.getElementById('view-data').classList.add('hidden');
                 document.getElementById('view-dashboard').classList.remove('hidden');
 
-                // Resize charts
                 [window.topCollabChart, window.activityChart, window.clientChart, window.evolutionChart].forEach(c => {
-                    if (c) c.resize();
+                    if (c && typeof c.resize === 'function') c.resize();
                 });
             }
             // Save preference
