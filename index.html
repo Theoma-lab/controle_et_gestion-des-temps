@@ -521,6 +521,9 @@
             };
 
             const filteredData = allTimesheets.filter(row => {
+                // 0. Exclude PROBE/Ghost records
+                if (row.comment === '__PROBE__') return false;
+
                 // 1. Strings (Includes)
                 if (filters.client && (!row.client || !row.client.toLowerCase().includes(filters.client))) return false;
 
