@@ -87,11 +87,16 @@ async function main() {
         }
 
         // Duration: Temps (h) vs Durée
-        let hours = 0;
-        if (row['Temps (h)'] !== undefined) hours = parseFloat(row['Temps (h)']);
-        else if (row['Durée'] !== undefined) hours = parseFloat(row['Durée']);
+        // Duration: Temps (h) vs Durée
+        let durationMins = 0;
 
-        const durationMins = Math.round(hours * 60);
+        if (row['Temps (h)'] !== undefined) {
+            // Temps (h) is DECIMAL HOURS (e.g. 1.5)
+            durationMins = Math.round(parseFloat(row['Temps (h)']) * 60);
+        } else if (row['Durée'] !== undefined) {
+            // Durée is ALREADY MINUTES (e.g. 90) -> Do not multiply by 60!
+            durationMins = Math.round(parseFloat(row['Durée']));
+        }
 
         return {
             date: dateVal,
