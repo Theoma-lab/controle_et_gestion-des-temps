@@ -572,6 +572,13 @@
                 return true;
             });
 
+            // Sort explicitly by date descending (Newest first)
+            filteredData.sort((a, b) => {
+                const da = a.date ? new Date(a.date) : new Date(0);
+                const db = b.date ? new Date(b.date) : new Date(0);
+                return db - da;
+            });
+
             // Update UI
             renderTable(filteredData.slice(0, 500));
             // document.getElementById('record-count').innerText = filteredData.length; // Assuming a record-count element exists
