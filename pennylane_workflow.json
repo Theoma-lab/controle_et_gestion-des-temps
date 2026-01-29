@@ -1,0 +1,152 @@
+{
+    "name": "Import PennyLane (Drop Zone)",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Manual Trigger",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "DELETE",
+                "url": "https://xvqwgndjznvewqgalpaq.supabase.co/rest/v1/timesheets?year=eq.2025",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi"
+            },
+            "name": "Clean 2025 Data",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "supabase-creds",
+                    "name": "Supabase Connection"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "fileSelector": "C:/Users/melanie.v/.gemini/antigravity/scratch/gestion-des-temps/imports/import.xlsx"
+            },
+            "name": "Read Excel File",
+            "type": "n8n-nodes-base.readBinaryFile",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fileFormat": "xlsx",
+                "options": {}
+            },
+            "name": "Parse Excel",
+            "type": "n8n-nodes-base.spreadsheetFile",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Mapping Config\nconst columnMap = {\n  \"Client\": \"client\",\n  \"Collaborateur\": \"employee_name\",\n  \"Date\": \"date\",\n  \"Activité\": \"activity\",\n  \"Commentaire\": \"comment\",\n  \"Durée\": \"duration\",\n  \"Facturable\": \"billable\",\n  \"Statut de facturation\": \"billing_status\",\n  \"Millésime\": \"year\",\n  \"Code\": \"code\",\n  \"Type de mission\": \"mission_type\",\n  \"Produit\": \"product\",\n  \"Quantité\": \"quantity\"\n};\n\nconst employeeMap = {\n  \"Alix Sonam\": \"alix@theoma.fr\",\n  \"Anne-Marie Mendy\": \"anne-marie@theoma.fr\",\n  \"Nasteho Said\": \"nasteho@theoma.fr\",\n  \"Hugo Grellier\": \"hugo@theoma.fr\",\n  \"Caroline Brillet\": \"caroline@theoma.fr\",\n  \"Anne-Cecile Joseph\": \"anne-cecile@theoma.fr\",\n  \"Kelly Gounelle\": \"kelly@theoma.fr\",\n  \"Christ-Leroy Tsika\": \"christ-leroy@theoma.fr\",\n  \"Alexia BORDERIE\": \"alexia@theoma.fr\",\n  \"Randy Biswese\": \"randy@theoma.fr\",\n  \"Natalie POISSON\": \"natalie@theoma.fr\",\n  \"Coumba Sylla\": \"coumba@theoma.fr\",\n  \"Leïla Guendouz\": \"leila@theoma.fr\",\n  \"Sarah Rhallab\": \"sarah@theoma.fr\",\n  \"Marine CHAILLON\": \"marine@theoma.fr\",\n  \"Sandra EMERY\": \"sandra@theoma.fr\",\n  \"Regis GODEFROY\": \"regis@theoma.fr\",\n  \"Bertille  COURT\": \"bertille@theoma.fr\",\n  \"Laura BARUK\": \"laura@theoma.fr\",\n  \"Marion  VIROLLE \": \"marion@theoma.fr\",\n  \"Anais DE JESUS\": \"anais@theoma.fr\",\n  \"Arnaud Guichaoua\": \"arnaud@theoma.fr\",\n  \"Sanadati RIDHOI\": \"sanadati@theoma.fr\",\n  \"Fanny VIROLLET\": \"fanny@theoma.fr\",\n  \"Romain GIPOULOU\": \"romain@theoma.fr\",\n  \"Kassandra  BRUNEAU\": \"kassandra@theoma.fr\",\n  \"Stéphanie JOLY \": \"stephanie@theoma.fr\",\n  \"Charlotte MOULINIER \": \"charlotte@theoma.fr\",\n  \"Lise Massei\": \"lise@theoma.fr\",\n  \"Alicia Bejar\": \"alicia@theoma.fr\",\n  \"Mélanie Voymant\": \"melanie@theoma.fr\"\n};\n\nfunction excelDateToJS(serial) {\n   if (!serial) return null;\n   // Excel base date logic\n   const utc_days  = Math.floor(serial - 25569);\n   const utc_value = utc_days * 86400;                                        \n   const date_info = new Date(utc_value * 1000);\n   return date_info.toISOString().split('T')[0]; \n}\n\nreturn items.map(item => {\n  const json = item.json;\n  // Initialize consistent object (Supabase batch requires identical keys)\n  const newRow = {\n    client: null,\n    employee_email: null,\n    date: null,\n    activity: null,\n    comment: null,\n    duration: null,\n    billable: null,\n    billing_status: null,\n    year: null,\n    code: null,\n    mission_type: null,\n    product: null,\n    quantity: null\n  };\n  \n  let tempName = null;\n\n  // 1. Map Columns\n  Object.keys(json).forEach(key => {\n    const targetKey = columnMap[key];\n    if (targetKey === 'employee_name') {\n        tempName = json[key];\n    } else if (targetKey) {\n      newRow[targetKey] = json[key];\n    }\n  });\n\n  // 2. Resolve Email\n  if (tempName && employeeMap[tempName]) {\n    newRow.employee_email = employeeMap[tempName];\n  }\n  \n  // 3. Format Date\n  if (newRow['date'] && typeof newRow['date'] === 'number') {\n      newRow['date'] = excelDateToJS(newRow['date']);\n  }\n\n  return { json: newRow };\n});"
+            },
+            "name": "Map Columns & Emails",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "create",
+                "schema": "public",
+                "tableId": "timesheets",
+                "columns": "employee_email, date, client, activity, duration, billable, comment, billing_status, year, code, mission_type, product, quantity",
+                "options": {}
+            },
+            "name": "Supabase Upsert",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                1250,
+                300
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "supabase-creds",
+                    "name": "Supabase Connection"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Manual Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Clean 2025 Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Clean 2025 Data": {
+            "main": [
+                [
+                    {
+                        "node": "Read Excel File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read Excel File": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Excel",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Excel": {
+            "main": [
+                [
+                    {
+                        "node": "Map Columns & Emails",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Columns & Emails": {
+            "main": [
+                [
+                    {
+                        "node": "Supabase Upsert",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
