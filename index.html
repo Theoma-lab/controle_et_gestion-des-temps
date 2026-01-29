@@ -1584,31 +1584,52 @@
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            // --- CHART 3: Top Clients ---
-            const topClients = Object.entries(clientHours)
-                .map(([client, mins]) => ({ client, hours: mins / 60 }))
-                .sort((a, b) => b.hours - a.hours)
+            // --- CHART 3: Top Clients (STACKED Facturable vs Non-Facturable) ---
+            const topClients = Object.entries(clientStats)
+                .map(([client, stats]) => ({
+                    client,
+                    total: stats.total / 60,
+                    billable: stats.billable / 60,
+                    nonBillable: stats.nonBillable / 60
+                }))
+                .sort((a, b) => b.total - a.total)
                 .slice(0, 10);
 
-            // Fix: Use correct element ID and window variable
             if (window.clientChart instanceof Chart) window.clientChart.destroy();
             window.clientChart = new Chart(document.getElementById('clientChart'), {
                 type: 'bar',
                 data: {
                     labels: topClients.map(c => c.client),
-                    datasets: [{
-                        label: 'Heures',
-                        data: topClients.map(c => c.hours),
-                        backgroundColor: '#8b5cf6', // Purple
-                        borderRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Facturable',
+                            data: topClients.map(c => c.billable),
+                            backgroundColor: '#10b981', // Green
+                            borderRadius: 4,
+                            stack: 'Stack 0'
+                        },
+                        {
+                            label: 'Non-Facturable',
+                            data: topClients.map(c => c.nonBillable),
+                            backgroundColor: '#ef4444', // Red
+                            borderRadius: 4,
+                            stack: 'Stack 0'
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
                     indexAxis: 'y',
                     scales: {
-                        x: { beginAtZero: true }
+                        x: {
+                            beginAtZero: true,
+                            stacked: true,
+                            title: { display: true, text: 'Heures' }
+                        },
+                        y: {
+                            stacked: true
+                        }
                     }
                 }
             });
