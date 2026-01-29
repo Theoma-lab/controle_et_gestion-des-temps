@@ -1300,6 +1300,88 @@
                </div>
             `;
 
+            // 4. CHARTS SECTION
+            // Container for charts
+            container.innerHTML += `
+                <div class="col-span-1 md:col-span-2 lg:col-span-4 grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+                    <!-- Daily Chart -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-80 flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Mon Évolution Quotidienne</h3>
+                        <div class="relative flex-1 min-h-0 w-full">
+                            <canvas id="myDailyChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Client Chart -->
+                    <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm h-80 flex flex-col">
+                        <h3 class="text-lg font-bold text-gray-800 mb-2">Mes Clients (Top 5)</h3>
+                        <div class="relative flex-1 min-h-0 w-full">
+                            <canvas id="myClientChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Wait for DOM update then render charts
+            setTimeout(() => {
+                // --- Chart 1: Daily Evolution (Current Month) ---
+                const daysInMonth = {};
+                // Fill days
+                const m = new Date();
+                const y = m.getFullYear();
+                const mo = m.getMonth();
+                const daysCount = new Date(y, mo + 1, 0).getDate();
+
+                for (let i = 1; i <= daysCount; i++) {
+                    const dateKey = `${y}-${String(mo + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    daysInMonth[i] = 0;
+                    // Simple sum
+                    const dailyTotal = myRows
+                        .filter(r => r.date && r.date.startsWith(dateKey))
+                        .reduce((acc, r) => acc + (r.duration || 0), 0) / 60;
+                    daysInMonth[i] = dailyTotal;
+                }
+
+                if (window.myDailyChart instanceof Chart) window.myDailyChart.destroy();
+                window.myDailyChart = new Chart(document.getElementById('myDailyChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(daysInMonth),
+                        datasets: [{
+                            label: 'Heures / Jour',
+                            data: Object.values(daysInMonth),
+                            backgroundColor: '#60a5fa',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+
+                // --- Chart 2: Client Distribution ---
+                const clientHours = {};
+                myRows.forEach(r => {
+                    const c = r.client || 'Non Specifié';
+                    clientHours[c] = (clientHours[c] || 0) + (r.duration || 0);
+                });
+                const topClients = Object.entries(clientHours)
+                    .map(([c, m]) => ({ c, h: m / 60 }))
+                    .sort((a, b) => b.h - a.h)
+                    .slice(0, 5);
+
+                if (window.myClientChart instanceof Chart) window.myClientChart.destroy();
+                window.myClientChart = new Chart(document.getElementById('myClientChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: topClients.map(x => x.c),
+                        datasets: [{
+                            data: topClients.map(x => x.h),
+                            backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+            }, 0);
+
             // 4. Missing Days (Last 10 working days?) - Simple check
             // TODO: More complex calendar logic if needed.
         }
