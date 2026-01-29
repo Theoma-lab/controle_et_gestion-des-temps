@@ -1,0 +1,179 @@
+{
+    "name": "Import Pennylane Excel",
+    "nodes": [
+        {
+            "parameters": {},
+            "id": "e4b8e2c0-5f2a-4b8c-9d1a-6e3f8b5c1d4e",
+            "name": "When clicking \"Execute Workflow\"",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fileSelector": "C:/Users/melanie.v/.gemini/antigravity/scratch/gestion-des-temps/PENNYLANE_THEOMA_Timesheets.xlsx"
+            },
+            "id": "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d",
+            "name": "Read Excel File",
+            "type": "n8n-nodes-base.readBinaryFile",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "options": {}
+            },
+            "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+            "name": "Parse Spreadsheet",
+            "type": "n8n-nodes-base.spreadsheetFile",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Fonctions utilitaires\nfunction getMonday(d) {\n  d = new Date(d);\n  var day = d.getDay(),\n      diff = d.getDate() - day + (day == 0 ? -6 : 1);\n  return new Date(d.setDate(diff));\n}\n\nfunction excelDateToJSDate(serial) {\n   var utc_days  = Math.floor(serial - 25569);\n   var utc_value = utc_days * 86400;\n   var date_info = new Date(utc_value * 1000);\n   return date_info;\n}\n\nfunction formatEmail(name) {\n    if (!name) return \"unknown@theoma.fr\";\n    const firstName = name.split(' ')[0].toLowerCase().trim();\n    const cleanName = firstName.normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g, \"\");\n    return `${cleanName}@theoma.fr`;\n}\n\n// Traitement des données\nconst items = $input.all();\nconst weeklyStats = {};\n\nfor (const item of items) {\n    const row = item.json;\n    const name = row['Collaborateur'];\n    const dateSerial = row['Date'];\n    const durationMinutes = row['Durée'] || 0;\n\n    if (!name || !dateSerial) continue;\n\n    const date = excelDateToJSDate(dateSerial);\n    const monday = getMonday(date);\n    const dateStr = monday.toISOString().split('T')[0]; \n    const email = formatEmail(name);\n    \n    const key = `${email}_${dateStr}`;\n\n    if (!weeklyStats[key]) {\n        weeklyStats[key] = {\n            employee_email: email,\n            period_start: dateStr,\n            total_hours: 0,\n            completion_rate: 100\n        };\n    }\n\n    weeklyStats[key].total_hours += (durationMinutes / 60);\n}\n\n// Formatage final\nreturn Object.values(weeklyStats).map(s => ({\n    json: {\n        ...s,\n        total_hours: parseFloat(s.total_hours.toFixed(2))\n    }\n}));"
+            },
+            "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+            "name": "Transform & Aggregate",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "create",
+                "schema": {
+                    "__rl": true,
+                    "value": "public",
+                    "mode": "list",
+                    "cachedResultName": "public"
+                },
+                "table": {
+                    "__rl": true,
+                    "value": "timesheet_stats",
+                    "mode": "list",
+                    "cachedResultName": "timesheet_stats"
+                },
+                "columns": {
+                    "mappingMode": "autoMapInputData",
+                    "value": {},
+                    "matchingColumns": [],
+                    "schema": [
+                        {
+                            "id": "employee_email",
+                            "displayName": "employee_email",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        },
+                        {
+                            "id": "period_start",
+                            "displayName": "period_start",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "string",
+                            "readOnly": false,
+                            "removed": false
+                        },
+                        {
+                            "id": "total_hours",
+                            "displayName": "total_hours",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "double",
+                            "readOnly": false,
+                            "removed": false
+                        },
+                        {
+                            "id": "completion_rate",
+                            "displayName": "completion_rate",
+                            "required": false,
+                            "defaultMatch": true,
+                            "display": true,
+                            "type": "int",
+                            "readOnly": false,
+                            "removed": false
+                        }
+                    ]
+                }
+            },
+            "id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+            "name": "Supabase",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "SUPABASE_CREDENTIALS_ID",
+                    "name": "Supabase account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "When clicking \"Execute Workflow\"": {
+            "main": [
+                [
+                    {
+                        "node": "Read Excel File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read Excel File": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Spreadsheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Spreadsheet": {
+            "main": [
+                [
+                    {
+                        "node": "Transform & Aggregate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Transform & Aggregate": {
+            "main": [
+                [
+                    {
+                        "node": "Supabase",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

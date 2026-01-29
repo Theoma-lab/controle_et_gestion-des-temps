@@ -1,5 +1,5 @@
 {
-    "name": "Import PennyLane (Drop Zone)",
+    "name": "Import PennyLane (Daily Auto)",
     "nodes": [
         {
             "parameters": {},
@@ -9,6 +9,24 @@
             "position": [
                 250,
                 300
+            ]
+        },
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 20
+                        }
+                    ]
+                }
+            },
+            "name": "Schedule Trigger",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                500
             ]
         },
         {
@@ -34,7 +52,7 @@
         },
         {
             "parameters": {
-                "fileSelector": "C:/Users/melanie.v/.gemini/antigravity/scratch/gestion-des-temps/imports/import.xlsx"
+                "fileSelector": "/files/imports/import.xlsx"
             },
             "name": "Read Excel File",
             "type": "n8n-nodes-base.readBinaryFile",
@@ -94,6 +112,17 @@
     ],
     "connections": {
         "Manual Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Clean 2025 Data",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Schedule Trigger": {
             "main": [
                 [
                     {

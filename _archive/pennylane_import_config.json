@@ -1,0 +1,21 @@
+{
+    "column_mapping": {
+        "Client": "client",
+        "Dossier": "client",
+        "Collaborateur": "employee_name_source",
+        "Date": "date",
+        "Activité": "activity",
+        "Tâche": "activity",
+        "Description": "comment",
+        "Libellé": "comment",
+        "Temps": "duration",
+        "Durée": "duration",
+        "Facturable": "billable",
+        "Statut": "billing_status"
+    },
+    "notes": {
+        "employee_match_logic": "Must reverse-lookup name in employee_map.json to find email.",
+        "vintage_logic": "If 'Millésime' column exists, map to 'vintage' (check if schema update needed).",
+        "duration_logic": "Convert decimal hours (1.5) to minutes (90) if needed."
+    }
+}

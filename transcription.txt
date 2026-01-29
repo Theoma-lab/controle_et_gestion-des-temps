@@ -1,0 +1,62 @@
+7:26 - Nicolas NION-GUILLOT
+Et là, qu'est-ce que tu es en train de faire sur les temps, du coup ? Parce qu'en fait, en gros, tu as compris l'objectif sur la gestion des temps, c'est qu'on puisse... Il y a plein de trucs en même temps, mais moi, je veux savoir, je veux pouvoir sélectionner un dossier, un milliésime pour savoir si on est rentable ou pas rentable. Et en fait, je veux pouvoir faire des filtres dans tous les sens. Parce qu'aujourd'hui, ce que nous, on a fait, je peux te montrer, c'est ça. Peut-être que je peux te les mettre à toi, d'ailleurs. Attends, c'est lenté aux mains. Il y a peut-être pas accès à ce truc-là. Le suivi des temps, c'est un template qu'on avait complété. Il y a deux choses différentes. Ici, on venait coller le timesheet. J'ai en anglais récap, en anglais semaine, parce que je n'arrive pas à retenir le numéro de semaine. Ça me permettait juste de savoir, tu vois, tu as une formule égale semaine. D'accord. Vu que dans le récap, tu as les numéros de semaine, je ne savais jamais de quelle date à quelle date c'était. Bon, tu as un onglet récap, onglet semaine pour info, les timesheet, où là, les colonnes A, A, E, ce sont des formules pour avoir ce qu'on voulait. Et ici, tu as un copier-coller à partir de F2, de l'export des temps. Copier-coller juste, tu le prends, tu le fous là. Ok. Et ensuite, ça, Je l'actualise. C'est un TCD assez classique. J'ai mis des mises en forme conditionnelles qui me permettaient de savoir pour chacun des collaborateurs, en fonction de son temps de travail, lequel avait rempli ou pas les 35 ou 39 heures. Ça me permettait de dire au coco, t'as oublié de faire tes temps, il faut les faire. C'est le temps que j'avais besoin. Ça, c'était le rôle de Kelly. On rôde à une première demande, c'est de nous assurer que tous les les temps de la semaine précédente sont tous saisis avec des alertes. C'est la première chose dont on a besoin. Ensuite, il y a autre chose qui est plus dans liste client et ça je peux te le copier. Je vais te le mettre que pour toi parce que tu n'as pas accès à ça normalement. Tu n'as pas accès à l'admin toi.
+
+9:42 - Mélanie VOYMANT
+Je ne crois pas. Je ne l'ai pas ce dossier-là. Je te le mets là, en copier-coller.
+
+9:47 - Mélanie VOYMANT
+Fais gaffe, celui-là, je l'ai coupé.
+
+9:49 - Nicolas NION-GUILLOT
+Donc ne me les gère pas, celui-là. Ouais, non, il n'y a pas de soucis du tout.
+
+9:55 - Mélanie VOYMANT
+Je ne serai pas...
+
+9:56 - Nicolas NION-GUILLOT
+Et la liste client, alors, il y a plein de choses qui ne vont pas t'intéresser. Mais c'est juste que j'avais réussi un contrôle des temps, qui est du coup plus bon du tout. Mais en fait, je comparais... Donc on a le contrôle de l'exauciteur, de la saisie des temps on vient d'en parler et ensuite il y a l'analyse des temps et moi je veux savoir je veux être capable de savoir pour un dossier donné quel est le temps passé par chacun pour chacune des missions comptables, juridiques, fiscales, sociales et ainsi de suite et en fait on avait écrit ce truc là mais c'est beaucoup d'excel donc c'est un peu compliqué pareil je venais coller ici ma timesheet tu vois et puis en plus j'avais des j'avais fait des formules donc je collais ma time sheet en E1 en E2 et ensuite ça, donc qu'est-ce que ça faisait, ça prenait, attends je reprends dans l'ordre, ici t'as un récap, ça tu t'en fous, le récap c'est, ça c'est quelque chose dont on aura besoin plus tard mais on verra pour ce fixe, ce récap là c'est de dire tel collaborateur il a tant de dossiers à tel poste, tant de dossiers à tel poste et ainsi de suite. Donc là ce qu'il faut lire c'est que Randy il a 60 dossiers en tant que chef de mission, 11 en tant que chargé de reporting, 1 en tant que collab, 1 en tant qu'assistant comptable. Tu as la même chose qui est séparée en nombre de dossiers mensuels et en nombre de dossiers autres. Et ensuite, tu as le total des temps. Donc je sais que Randy, il est vendu 545 heures en poste de chef de mission, il est vendu 445 heures en poste de chargé de reporting, 30 pour les collabs et 180 pour l'assistant comptable. Ça nous dit qu'il est chargé, qu'il a un total de 1200 heures, il a un temps de présence de 1833 heures, 39 heures x 47 semaines, moins les 5 semaines de congés payés, il a un nombre d'heures facturable de 80% de son temps de présence, il a donc du coup du temps de dispo de 633 et il a un temps facturable disponible de 265 heures. Il a donc 18% de son temps qu'on peut affecter à des clients, tout en respectant ce taux de chargement de 80 heures. Ça c'est à ça que sert ce truc là et puis après t'as une estimation du chiffre et ça c'est assez empirique on a pas besoin de le faire. Ici tu as la liste des clients de tout le cabinet. Et ça c'est quelque chose que l'ISE remplit. Pourquoi est-ce que je passe de... Pourquoi j'ai pas de ligne là ? Donc là, ça c'est la liste de tous les clients du cabinet avec le nom du client, l'affectation, qui est à quel poste, la forme, machin, et les temps vendus. Donc j'ai vendu pour ce dossier là, tant de temps d'expert contact, tant de temps de directeur d'admission, et ainsi de suite.
+
+12:53 - Mélanie VOYMANT
+Et ça, les temps vendus, c'était où déjà ? C'était dans Copilot ?
+
+12:58 - Nicolas NION-GUILLOT
+C'est nulle part. L'étant vendu c'est moi qui fais un tableau Excel pour calculer le nombre d'heures pour un dossier et ensuite l'ISE reporte les données de ce fichier Excel dans cette liste client sur lequel on est. Et ça c'est quelque chose qui va falloir passer sur SOFIX aussi. Mais en tout cas ici tu as la liste de tous les temps vendus avec les taux de chacun des postes et du coup avec un chiffre d'affaires estimatif par client. Et en fait les temps, moi je veux comparer les temps passés avec les temps vendus.
+
+13:29 - Intervenant non identifié
+Oui.
+
+13:30 - Intervenant non identifié
+Tout simplement.
+
+13:30 - Intervenant non identifié
+Ok.
+
+13:31 - Mélanie VOYMANT
+Et les en-têtes là où c'est marqué ECDM c'est les postes c'est ça ? Expert comptable, directeur de mission, chef de mission. Et ça on les a dans Pennylane ou c'est à part aussi ? Non, ça tu ne l'as pas non plus.
+
+13:43 - Nicolas NION-GUILLOT
+Après il faudra que tu me dises, il y a peut-être plein de choses à changer. Et après en contrôle des temps du coup je viens ici. Donc là, il y a un truc qui a pété du coup, mais il est censé me faire une recherche il est censé aller me trouver les postes, qui est le directeur, qui est le DM et qui est le collab. Ensuite, il va me chercher dans le timesheet des temps de Penny Lane, le nombre d'heures passées pour chacune des tâches, des temps. C'est pour ça que j'avais fait un filtre. Ici, j'ai des sommes-ci sur les temps comptables, les temps de DAF, les temps fiscaux, les temps sociaux, les temps juridiques, les temps conseils, et les temps administratifs. J'ai un total de temps, ensuite j'ai un total de temps hors lettre de mission, parce qu'il peut y avoir des choses qui ne sont pas dans la lettre de mission, les temps recalculés et du coup les temps de la lettre de mission. Et ensuite j'ai un niveau de consommation, j'ai fait des calculs sur un niveau de consommation bonivali, donc en foulière, en recalculé et en prioritisé à date. Bon, ça ne fonctionne pas. En fait, moi ce que je veux, c'est un outil sur lequel je dis, je veux cette information-là, je veux les temps passés soit par, je veux savoir à Tessile combien de temps elle a passé semaine X. Je veux savoir sur l'année, avec des fils de base sur l'année, sur ce dossier-là, il y a ce temps qui a été passé et je veux avoir le détail de ce temps si je veux aller l'analyser pour comprendre ce qui s'est passé.
+
+15:16 - Mélanie VOYMANT
+D'accord. Ouais, c'est faisable. C'est juste que là au moins il y a détails c'est bien.
+
+15:22 - Mélanie VOYMANT
+Ça te permet de Voir ce qu'on avait fait mais il y a plein de choses à corriger.
+
+15:29 - Mélanie VOYMANT
+Ouais peut-être ce qui serait bien c'est que j'ai justement pour les postes la liste des personnes.
+
+15:36 - Nicolas NION-GUILLOT
+Je suis pas sûre d'avoir... La liste des personnes, bah tu les as ici en récap.
+
+15:42 - Intervenant non identifié
+Ah ok.
+
+15:43 - Nicolas NION-GUILLOT
+Donc Nicolas Dorothée.
+
+15:45 - Mélanie VOYMANT
+Ah oui c'est les initiales, ok.
+
+15:47 - Nicolas NION-GUILLOT
+Exactement. Et en bleu les managers et en jaune en dessous, l'équipe. Et ça, ça va servir aussi parce que dans l'analyse des temps, il faut que chacun des managers puisse contrôler les temps de ses collaborateurs. Ça, j'avais commencé à le faire.

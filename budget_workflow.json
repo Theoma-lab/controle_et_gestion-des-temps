@@ -1,0 +1,123 @@
+{
+    "name": "Import Budgets (Liste Clients)",
+    "nodes": [
+        {
+            "parameters": {},
+            "name": "Manual Trigger",
+            "type": "n8n-nodes-base.manualTrigger",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fileSelector": "/files/imports/THEOMA - Liste clients.xlsx"
+            },
+            "name": "Read Excel File",
+            "type": "n8n-nodes-base.readBinaryFile",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "fileFormat": "xlsx",
+                "sheetName": "Clients",
+                "options": {
+                    "range": "A1:Z1000"
+                }
+            },
+            "name": "Parse Clients Sheet",
+            "type": "n8n-nodes-base.spreadsheetFile",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Helper: find value strictly\nfunction getValue(row, keyName) {\n    if (row[keyName] !== undefined && row[keyName] !== null) return parseFloat(row[keyName]) || 0;\n    // Try fuzzy match\n    const realKey = Object.keys(row).find(k => k.trim() === keyName.trim());\n    if (realKey) return parseFloat(row[realKey]) || 0;\n    return 0;\n}\n\n// Config\nconst roles = [\n  { code: 'EC',     colHours: 'HEURES',     colAmount: 'HONORAIRES' },\n  { code: 'DM',     colHours: '__EMPTY_23', colAmount: '__EMPTY_39' },\n  { code: 'CM',     colHours: '__EMPTY_24', colAmount: '__EMPTY_40' },\n  { code: 'Collab', colHours: '__EMPTY_28', colAmount: '__EMPTY_44' },\n  { code: 'Assist', colHours: '__EMPTY_29', colAmount: '__EMPTY_45' }\n];\n\nconst records = [];\nconst debugLog = [];\n\nitems.forEach((item, index) => {\n  const row = item.json;\n  let clientName = row['__EMPTY_3'];\n  if (!clientName) clientName = row['__EMPTY_4'];\n\n  // Convert to string safely\n  const nameStr = clientName ? String(clientName).trim() : '';\n\n  // Capture Debug info for first few rows\n  if (index < 5) {\n      debugLog.push({\n          rowIndex: index,\n          rawName: clientName,\n          nameStr: nameStr,\n          availableKeys: Object.keys(row).filter(k => k.includes('HEURES') || k.includes('EMPTY_23'))\n      });\n  }\n\n  // Skip invalid\n  if (!nameStr || nameStr === 'Nom' || nameStr.includes('TOTAL') || nameStr === '0') return;\n\n  roles.forEach(role => {\n    const hours = getValue(row, role.colHours);\n    const amount = getValue(row, role.colAmount);\n\n    if (hours > 0 || amount > 0) {\n      records.push({\n        json: {\n          client_name: nameStr,\n          year: 2025,\n          role_code: role.code,\n          mission_type: 'Comptabilité',\n          hours_sold: hours,\n          amount_sold: amount\n        }\n      });\n    }\n  });\n});\n\n// IF NO RECORDS, RETURN DEBUG INFO\nif (records.length === 0) {\n    return [{\n        json: {\n            ERROR: \"0 records found. check debug info below.\",\n            DEBUG_LOG: debugLog,\n            FIRST_ROW_KEYS: Object.keys(items[0].json)\n        }\n    }];\n}\n\nreturn records;"
+            },
+            "name": "Unpivot & Format",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 1,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "upsert",
+                "schema": "public",
+                "tableId": "client_budgets",
+                "columns": "client_name, year, role_code, mission_type, hours_sold, amount_sold",
+                "options": {}
+            },
+            "name": "Upsert Budgets",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                1050,
+                300
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "supabase-creds",
+                    "name": "Supabase Connection"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Manual Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Read Excel File",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Read Excel File": {
+            "main": [
+                [
+                    {
+                        "node": "Parse Clients Sheet",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse Clients Sheet": {
+            "main": [
+                [
+                    {
+                        "node": "Unpivot & Format",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Unpivot & Format": {
+            "main": [
+                [
+                    {
+                        "node": "Upsert Budgets",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

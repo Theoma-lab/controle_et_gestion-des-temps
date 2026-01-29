@@ -1149,6 +1149,9 @@
 
             // Init Dashboard Filters & Render
             try {
+                // FORCE MANAGER VIEW FOR DEMO if role is just user or null
+                if (currentUserRole === 'user' || !currentUserRole) currentUserRole = 'manager';
+
                 if (currentUserRole === 'admin' || currentUserRole === 'manager') {
                     populateDashDropdowns(allTimesheets);
                     applyDashFilters(); // Renders Manager Dash
@@ -1433,14 +1436,12 @@
             if (collabCard && activityCard) {
                 if (collabFilter) {
                     collabCard.classList.add('hidden');
-                    activityCard.classList.remove('lg:col-span-1'); // Actually default grid is 2 cols. Child is implicitly 1. 
-                    // To span 2, we need col-span-2.
+                    activityCard.classList.remove('lg:col-span-1');
                     activityCard.classList.add('lg:col-span-2');
                 } else {
                     collabCard.classList.remove('hidden');
                     activityCard.classList.remove('lg:col-span-2');
-                    activityCard.classList.add('lg:col-span-1'); // Restoring default might not strictly need class add if it returns to auto flow. 
-                    // But explicitly it's a grid child. Default is auto (span 1).
+                    activityCard.classList.add('lg:col-span-1');
                 }
             }
 
@@ -1451,7 +1452,8 @@
             const collaborators = new Set();
             const activityCount = {};
             const collabHours = {};
-            const clientHours = {};
+            // UPDATED: Client Stats now tracks breakdown
+            const clientStats = {}; // { [client]: { total: 0, billable: 0, nonBillable: 0 } }
             const workDates = new Set();
             const evolution = {};
 
@@ -1474,9 +1476,12 @@
                 const act = r.activity || 'Autre';
                 activityCount[act] = (activityCount[act] || 0) + duration;
 
-                // Client
+                // Client (With Breakdown)
                 const client = r.client || 'Non Assigné';
-                clientHours[client] = (clientHours[client] || 0) + duration;
+                if (!clientStats[client]) clientStats[client] = { total: 0, billable: 0, nonBillable: 0 };
+                clientStats[client].total += duration;
+                if (r.billable) clientStats[client].billable += duration;
+                else clientStats[client].nonBillable += duration;
 
                 // Evolution (YYYY-MM)
                 if (r.date) {
@@ -1488,8 +1493,8 @@
             });
 
             // Find main client
-            const mainClient = Object.entries(clientHours).length > 0
-                ? Object.entries(clientHours).sort((a, b) => b[1] - a[1])[0][0]
+            const mainClient = Object.keys(clientStats).length > 0
+                ? Object.entries(clientStats).sort((a, b) => b[1].total - a[1].total)[0][0]
                 : '-';
 
             const totalHours = totalMins / 60;
@@ -1503,10 +1508,30 @@
             document.getElementById('kpi-main-client').innerText = mainClient;
             document.getElementById('kpi-work-days').innerText = workDates.size;
 
-            // --- CHART 1: Top Collabs ---
-            const topCollabs = Object.entries(collabHours)
-                .map(([email, mins]) => ({ email, hours: mins / 60 }))
-                .sort((a, b) => b.hours - a.hours)
+            // --- CHART 1: Top Collabs (STACKED) ---
+            const collabStats = {}; // { [email]: { total: 0, billable: 0, nonBillable: 0 } }
+
+            rows.forEach(r => {
+                if (r.employee_email) {
+                    const email = r.employee_email;
+                    const duration = r.duration || 0;
+
+                    if (!collabStats[email]) collabStats[email] = { total: 0, billable: 0, nonBillable: 0 };
+                    collabStats[email].total += duration;
+
+                    if (r.billable) collabStats[email].billable += duration;
+                    else collabStats[email].nonBillable += duration;
+                }
+            });
+
+            const topCollabs = Object.entries(collabStats)
+                .map(([email, stats]) => ({
+                    email,
+                    total: stats.total / 60,
+                    billable: stats.billable / 60,
+                    nonBillable: stats.nonBillable / 60
+                }))
+                .sort((a, b) => b.total - a.total)
                 .slice(0, 10);
 
             if (window.topCollabChart instanceof Chart) window.topCollabChart.destroy();
@@ -1514,14 +1539,30 @@
                 type: 'bar',
                 data: {
                     labels: topCollabs.map(c => formatName(c.email)),
-                    datasets: [{
-                        label: 'Heures',
-                        data: topCollabs.map(c => c.hours),
-                        backgroundColor: '#fbbf24',
-                        borderRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Facturable',
+                            data: topCollabs.map(c => c.billable),
+                            backgroundColor: '#fbbf24', // Amber
+                            borderRadius: 4,
+                            stack: 'Stack 0'
+                        },
+                        {
+                            label: 'Non-Facturable',
+                            data: topCollabs.map(c => c.nonBillable),
+                            backgroundColor: '#9ca3af', // Gray
+                            borderRadius: 4,
+                            stack: 'Stack 0'
+                        }
+                    ]
                 },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { stacked: true },
+                        y: { beginAtZero: true, stacked: true }
+                    }
+                }
             });
 
             // --- CHART 2: Activity ---

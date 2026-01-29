@@ -11,6 +11,7 @@ services:
       - N8N_PROTOCOL=http
       - NODE_ENV=production
       - WEBHOOK_URL=http://127.0.0.1:5678/
+      - N8N_RESTRICT_FILE_ACCESS_TO=/files
     volumes:
       - ./n8n_docker_data:/home/node/.n8n
       - ./imports:/files/imports

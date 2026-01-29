@@ -1,0 +1,3 @@
+
+=== Analyzing: THEOMA - Liste clients.xlsx ===
+Sheets found: Recap, Clients, Evolution temps 2026, Controle des temps, TimeSheet, Prospects, Listes
